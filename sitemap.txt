@@ -4,5 +4,5 @@ http://example.com/2020/05/26/hello-world/
 http://example.com/categories/index.html
 http://example.com/
 http://example.com/categories/test/
-http://example.com/categories/go/
 http://example.com/categories/python/
+http://example.com/categories/go/
