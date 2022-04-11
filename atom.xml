@@ -10,7 +10,7 @@
   <id>https://zcej.github.io/</id>
   
   <author>
-    <name>John Doe</name>
+    <name>CeJ</name>
     
   </author>
   
@@ -27,6 +27,29 @@
     
     
     <category term="python" scheme="https://zcej.github.io/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>nini</title>
+    <link href="https://zcej.github.io/2020/05/26/go-c/"/>
+    <id>https://zcej.github.io/2020/05/26/go-c/</id>
+    <published>2020-05-26T11:30:21.000Z</published>
+    <updated>2022-04-11T15:37:25.815Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="/images/blog/go/test.jpg" alt="test"></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;img src=&quot;/images/blog/go/test.jpg&quot; alt=&quot;test&quot;&gt;&lt;/p&gt;
+</summary>
+      
+    
+    
+    
+    <category term="nini" scheme="https://zcej.github.io/categories/nini/"/>
     
     
   </entry>
@@ -58,8 +81,16 @@
     <link href="https://zcej.github.io/2020/05/26/go/%E5%88%9D%E5%A7%8Bgo/"/>
     <id>https://zcej.github.io/2020/05/26/go/%E5%88%9D%E5%A7%8Bgo/</id>
     <published>2020-05-26T11:30:21.000Z</published>
-    <updated>2022-04-10T07:10:35.634Z</updated>
+    <updated>2022-04-11T14:50:39.926Z</updated>
     
+    <content type="html"><![CDATA[<p><img src="/img/test.jpg" alt="test"></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;img src=&quot;/img/test.jpg&quot; alt=&quot;test&quot;&gt;&lt;/p&gt;
+</summary>
+      
     
     
     

@@ -1,8 +1,10 @@
-https://zcej.github.io/2020/06/26/python/%E5%88%9D%E5%A7%8Bpython/
+https://zcej.github.io/2020/05/26/go-c/
 https://zcej.github.io/2020/05/26/go/%E5%88%9D%E5%A7%8Bgo/
+https://zcej.github.io/2020/06/26/python/%E5%88%9D%E5%A7%8Bpython/
 https://zcej.github.io/2020/05/26/hello-world/
 https://zcej.github.io/categories/index.html
 https://zcej.github.io/
+https://zcej.github.io/categories/nini/
 https://zcej.github.io/categories/test/
 https://zcej.github.io/categories/go/
 https://zcej.github.io/categories/python/

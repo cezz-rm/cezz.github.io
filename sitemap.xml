@@ -2,9 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://zcej.github.io/2020/06/26/python/%E5%88%9D%E5%A7%8Bpython/</loc>
+    <loc>https://zcej.github.io/2020/05/26/go-c/</loc>
     
-    <lastmod>2022-04-10</lastmod>
+    <lastmod>2022-04-11</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -12,6 +12,15 @@
   
   <url>
     <loc>https://zcej.github.io/2020/05/26/go/%E5%88%9D%E5%A7%8Bgo/</loc>
+    
+    <lastmod>2022-04-11</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://zcej.github.io/2020/06/26/python/%E5%88%9D%E5%A7%8Bpython/</loc>
     
     <lastmod>2022-04-10</lastmod>
     
@@ -47,6 +56,13 @@
 
   
 
+  
+  <url>
+    <loc>https://zcej.github.io/categories/nini/</loc>
+    <lastmod>2022-04-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
   
   <url>
     <loc>https://zcej.github.io/categories/test/</loc>
