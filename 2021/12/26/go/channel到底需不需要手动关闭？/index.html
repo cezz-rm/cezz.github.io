@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>channel到底需不需要手动关闭 | My Blog</title>
+  <meta name="description" content="前景提要下面的代码是《go语言圣经》这本书的其中一个案例，其中主协程和子协程兼具生产消费两种身份了，最终当没有新的消息时代码会阻塞住，而书中没有给出该案例的终止方式，自己也是思考了很久，看来还是对go的channel理解不够深，在使用channel的时候一定要有自己的思考，不然可能会引发很多问题，小到程序莫名其妙的panic，大到出现goroutine以及channel的泄露等等！ 1234567">
+<meta property="og:type" content="article">
+<meta property="og:title" content="channel到底需不需要手动关闭">
+<meta property="og:url" content="https://zcej.github.io/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="前景提要下面的代码是《go语言圣经》这本书的其中一个案例，其中主协程和子协程兼具生产消费两种身份了，最终当没有新的消息时代码会阻塞住，而书中没有给出该案例的终止方式，自己也是思考了很久，看来还是对go的channel理解不够深，在使用channel的时候一定要有自己的思考，不然可能会引发很多问题，小到程序莫名其妙的panic，大到出现goroutine以及channel的泄露等等！ 1234567">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-12-25T16:31:29.000Z">
+<meta property="article:modified_time" content="2022-05-23T09:41:33.091Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/03/18/go/go%E5%AE%9E%E7%8E%B0%E5%A4%A7%E6%A0%B9%E5%A0%86%E3%80%81%E5%B0%8F%E6%A0%B9%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/" class="title">go语言实现大根堆、小根堆及堆排序</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-03-18T13:07:38.000Z" itemprop="datePublished">2022-03-18</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/03/05/go/channel%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/" class="title">channel的底层实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-03-05T11:43:21.000Z" itemprop="datePublished">2022-03-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/02/12/go/go%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90/" class="title">go语言变量逃逸分析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-02-12T07:16:09.000Z" itemprop="datePublished">2022-02-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/" class="title">channel到底需不需要手动关闭</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-12-25T16:31:29.000Z" itemprop="datePublished">2021-12-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/11/19/go/%E5%85%B3%E4%BA%8Echannel%E5%92%8Cgoroutine%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E9%97%AE%E9%A2%98/" class="title">关于channel和goroutine的内存泄漏问题</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-11-19T15:18:41.000Z" itemprop="datePublished">2021-11-19</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-go/channel到底需不需要手动关闭？" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      channel到底需不需要手动关闭
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/" class="article-date">
+	  <time datetime="2021-12-25T16:31:29.000Z" itemprop="datePublished">2021-12-26</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/go/">go</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="前景提要"><a href="#前景提要" class="headerlink" title="前景提要"></a>前景提要</h2><p>下面的代码是《go语言圣经》这本书的其中一个案例，其中主协程和子协程兼具生产消费两种身份了，最终当没有新的消息时代码会阻塞住，而书中没有给出该案例的终止方式，自己也是思考了很久，看来还是对go的channel理解不够深，在使用channel的时候一定要有自己的思考，不然可能会引发很多问题，小到程序莫名其妙的panic，大到出现goroutine以及channel的泄露等等！</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">crawl</span><span class="params">(url <span class="type">string</span>)</span></span> []<span class="type">string</span> &#123;</span><br><span class="line">    urls, err := links.Extract(url) <span class="comment">// 书中其他章节, 具体逻辑是提取网页中所有a标签的链接</span></span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Print(err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> urls</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	worklist := <span class="built_in">make</span>(<span class="keyword">chan</span> []<span class="type">string</span>)  <span class="comment">// lists of URLs, may have duplicates</span></span><br><span class="line">	unseenLinks := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">string</span>) <span class="comment">// de-duplicated URLs</span></span><br><span class="line">    urls := []<span class="type">string</span>&#123;<span class="string">&quot;http://xxxx.com&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Add command-line arguments to worklist.</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; worklist &lt;- urls &#125;()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Create 20 crawler goroutines to fetch each unseen link.</span></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">20</span>; i++ &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">for</span> link := <span class="keyword">range</span> unseenLinks &#123;</span><br><span class="line">				foundLinks := crawl(link)</span><br><span class="line">				<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; worklist &lt;- foundLinks &#125;()</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// The main goroutine de-duplicates worklist items</span></span><br><span class="line">	<span class="comment">// and sends the unseen ones to the crawlers.</span></span><br><span class="line">	seen := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">bool</span>)</span><br><span class="line">	<span class="keyword">for</span> list := <span class="keyword">range</span> worklist &#123;</span><br><span class="line">        <span class="keyword">for</span> _, link := <span class="keyword">range</span> list &#123;</span><br><span class="line">            <span class="keyword">if</span> !seen[link] &#123;</span><br><span class="line">				seen[link] = <span class="literal">true</span></span><br><span class="line">				unseenLinks &lt;- link</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>虽然上述并发案例书中未提及如何终止的问题，不过书里也提供了另外一种并发方式且可自动终止，如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// tokens is a counting semaphore used to</span></span><br><span class="line"><span class="comment">// enforce a limit of 20 concurrent requests.</span></span><br><span class="line"><span class="keyword">var</span> tokens = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, <span class="number">20</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">crawl</span><span class="params">(w work, mutex sync.Locker)</span></span> []work &#123;</span><br><span class="line">    fmt.Println(url)</span><br><span class="line">	tokens &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125; <span class="comment">// acquire a token</span></span><br><span class="line">	urls, err := links.Extract(w.url)</span><br><span class="line">	&lt;-tokens <span class="comment">// release the token</span></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Print(err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> urls</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	worklist := <span class="built_in">make</span>(<span class="keyword">chan</span> []<span class="type">string</span>)</span><br><span class="line">	<span class="keyword">var</span> n <span class="type">int</span> <span class="comment">// number of pending sends to worklist</span></span><br><span class="line">    url := []<span class="type">string</span>&#123;<span class="string">&quot;http://xxxx.com&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// start</span></span><br><span class="line">	n++</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; worklist &lt;- []work&#123;url&#125; &#125;()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// crawl the web concurrently</span></span><br><span class="line">	visited := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">bool</span>)</span><br><span class="line">    </span><br><span class="line">	<span class="keyword">for</span> ; n &gt; <span class="number">0</span>; n-- &#123;</span><br><span class="line">		works := &lt;-worklist</span><br><span class="line">		<span class="keyword">for</span> _, w := <span class="keyword">range</span> works &#123;</span><br><span class="line">			<span class="keyword">if</span> !visited[w.url] &#123;</span><br><span class="line">				visited[w.url] = <span class="literal">true</span></span><br><span class="line">				n++</span><br><span class="line">				<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(w work)</span></span> &#123;</span><br><span class="line">					worklist &lt;- crawl(w, &amp;lock)</span><br><span class="line">				&#125;(w)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种实现方式很巧妙，使用了计数器n进行了限制，主协程在n减为0的时候会终止，子协程也会随之退出。这里的channel在没有被goroutine引用的时候也会被gc所销毁，结合第一个没有终止的案例，我们必须手动去关闭掉生产消费，让程序达到所有消息消费完后自动终止的目的。那么以下知识点就是必须要掌握的！</p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7033671944587182087">https://juejin.cn/post/7033671944587182087</a></p>
+<h2 id="什么情况下关闭channel会引发panic？"><a href="#什么情况下关闭channel会引发panic？" class="headerlink" title="什么情况下关闭channel会引发panic？"></a>什么情况下关闭channel会引发panic？</h2><p>示例如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 关闭未初始化的chan</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestCloseNilChan</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> errCh <span class="keyword">chan</span> <span class="type">error</span></span><br><span class="line">	<span class="built_in">close</span>(errCh)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Output:</span></span><br><span class="line">	<span class="comment">// panic: close of nil channel</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 关闭已经关闭的chan</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestRepeatClosingChan</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	errCh := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">error</span>)</span><br><span class="line">	<span class="built_in">close</span>(errCh)</span><br><span class="line">	<span class="built_in">close</span>(errCh)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Output:</span></span><br><span class="line">	<span class="comment">// panic: close of closed channel</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 关闭chan后发送数据</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestSendOnClosingChan</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	errCh := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">error</span>)</span><br><span class="line">	<span class="built_in">close</span>(errCh)</span><br><span class="line">	errCh &lt;- errors.New(<span class="string">&quot;chan error&quot;</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Output:</span></span><br><span class="line">	<span class="comment">// panic: send on closed channel</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 发送数据时关闭chan</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestCloseOnSendingToChan</span><span class="params">(t *testing.T)</span></span>  &#123;</span><br><span class="line">	errCh := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">error</span>)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		errCh &lt;- errors.New(<span class="string">&quot;chan error&quot;</span>)</span><br><span class="line">	&#125;()</span><br><span class="line">	time.Sleep(<span class="number">1</span> * time.Second)</span><br><span class="line">	<span class="built_in">close</span>(errCh)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Output:</span></span><br><span class="line">	<span class="comment">// panic: send on closed channel</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>总结， 下述四种情况下关闭channel会引发panic：</p>
+<ol>
+<li>关闭未初始化的channel</li>
+<li>关闭已经关闭的channel</li>
+<li>在关闭channel后发送数据</li>
+<li>在发送数据时关闭channel</li>
+</ol>
+</blockquote>
+<p>另外，可总结出以下规律：</p>
+<ul>
+<li>只能让channel的唯一发送者关闭此channel</li>
+<li>如果有多个发送者，应该使用专门的信号通知stop channel<h2 id="是否有必要关闭channel？不关闭又如何？"><a href="#是否有必要关闭channel？不关闭又如何？" class="headerlink" title="是否有必要关闭channel？不关闭又如何？"></a>是否有必要关闭channel？不关闭又如何？</h2><h3 id="当channel的发送次数等于接收次数"><a href="#当channel的发送次数等于接收次数" class="headerlink" title="当channel的发送次数等于接收次数"></a>当channel的发送次数等于接收次数</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 当channel的发送次数等于接收次数</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestIsCloseChannelNecessary_on_equal</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">&quot;NumGoroutine:&quot;</span>, runtime.NumGoroutine())</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// sender</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</span><br><span class="line">			ch &lt;- i</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// receiver</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</span><br><span class="line">			fmt.Println(&lt;-ch)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line">	time.Sleep(time.Second * <span class="number">1</span>)</span><br><span class="line">	fmt.Println(<span class="string">&quot;NumGoroutine:&quot;</span>, runtime.NumGoroutine())</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// Output:</span></span><br><span class="line">	<span class="comment">// NumGoroutine: 2</span></span><br><span class="line">	<span class="comment">//	 0</span></span><br><span class="line">	<span class="comment">//	 1</span></span><br><span class="line">	<span class="comment">//	 2</span></span><br><span class="line">	<span class="comment">// NumGoroutine: 2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+channel的发送次数等于接收次数时，发送者的goroutine和接收者的goroutine分别会在发送和接收结束时结束自己的goroutine，用于传输数据的channel也会由于代码没有使用被垃圾收集器回收。所以该种情况下不需手动关闭chanel。<h3 id="当channel的发送次数大于-x2F-小于接收次数"><a href="#当channel的发送次数大于-x2F-小于接收次数" class="headerlink" title="当channel的发送次数大于&#x2F;小于接收次数"></a>当channel的发送次数大于&#x2F;小于接收次数</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 2. 当channel的发送次数大于/小于接收次数</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestIsCloseChannelNecessary_on_more_equal</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">&quot;NumGoroutine:&quot;</span>, runtime.NumGoroutine())</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">int</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// sender</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> fmt.Println(<span class="string">&quot;exit 1&quot;</span>)</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">4</span>; i++ &#123;</span><br><span class="line">			ch &lt;- i</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// receiver</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> fmt.Println(<span class="string">&quot;exit 2&quot;</span>)</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</span><br><span class="line">			fmt.Println(&lt;-ch)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line">	time.Sleep(time.Second * <span class="number">1</span>)</span><br><span class="line">	fmt.Println(<span class="string">&quot;NumGoroutine:&quot;</span>, runtime.NumGoroutine())</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Output:</span></span><br><span class="line">	<span class="comment">// NumGoroutine: 2</span></span><br><span class="line">	<span class="comment">//	 0</span></span><br><span class="line">	<span class="comment">//	 1</span></span><br><span class="line">	<span class="comment">//	 2</span></span><br><span class="line">    <span class="comment">//   exit 2</span></span><br><span class="line">	<span class="comment">// NumGoroutine: 3</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+channel的发送次数大于接收次数时，发送者goroutine会等待接收者接收而一直阻塞。所以发送者goroutine一直未退出，channel也会由于一直被发送者使用而无法被垃圾回收。未退出的goroutine和channel会造成内存泄露等问题。<blockquote>
+<p>总结：</p>
+<ul>
+<li>在只有一个发送者和一个接收者的情况下，只要确保发送者或接收者不会阻塞，不关闭channel是可行的。</li>
+<li>在无法判断channel的发送次数和接收次数时，应当在合适的时机关闭channel。</li>
+<li>另外使用for range从channel取值的时候，需要手动close掉channel，否则消费者会一直阻塞进而panic抛出错误，会被判定为死锁。</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<h2 id="如何判断channel是否关闭？"><a href="#如何判断channel是否关闭？" class="headerlink" title="如何判断channel是否关闭？"></a>如何判断channel是否关闭？</h2><blockquote>
+<p>channel关闭后继续读取该chennel不会阻塞，而是返回对应类型的零值。</p>
+</blockquote>
+<h3 id="使用channel的多重返回值-如err-ok-x3D-lt-errCh"><a href="#使用channel的多重返回值-如err-ok-x3D-lt-errCh" class="headerlink" title="使用channel的多重返回值(如err, ok :&#x3D; &lt;- errCh)"></a>使用channel的多重返回值(如err, ok :&#x3D; &lt;- errCh)</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 使用channel的返回值判断其是否关闭</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestReadFromClosedChan</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> errCh = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">error</span>)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(errCh)</span><br><span class="line">		errCh &lt;- errors.New(<span class="string">&quot;chan error&quot;</span>)</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</span><br><span class="line">			err, ok := &lt;-errCh;</span><br><span class="line">			fmt.Println(i, err, ok)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	time.Sleep(time.Second)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Output:</span></span><br><span class="line">	<span class="comment">// 0 chan error true</span></span><br><span class="line">	<span class="comment">// 1 &lt;nil&gt; false</span></span><br><span class="line">	<span class="comment">// 2 &lt;nil&gt; false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>err, ok :&#x3D; &lt;- errCh的第二个值ok返回false表示该channel已关闭。</p>
+<h3 id="使用for-range简化语法"><a href="#使用for-range简化语法" class="headerlink" title="使用for range简化语法"></a>使用for range简化语法</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 2. 使用for range简化语法</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestReadFromClosedChan2</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> errCh = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">error</span>)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(errCh)</span><br><span class="line">		errCh &lt;- errors.New(<span class="string">&quot;chan error&quot;</span>)</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		i := <span class="number">0</span></span><br><span class="line">		<span class="keyword">for</span> err := <span class="keyword">range</span> errCh &#123;</span><br><span class="line">			fmt.Println(i, err)</span><br><span class="line">			i++</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	time.Sleep(time.Second)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Output:</span></span><br><span class="line">	<span class="comment">// 0 chan error</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="如何优雅的关闭channel"><a href="#如何优雅的关闭channel" class="headerlink" title="如何优雅的关闭channel?"></a>如何优雅的关闭channel?</h2><p>详细案例参考文章：<a target="_blank" rel="noopener" href="https://gfw.go101.org/article/channel-closing.html">https://gfw.go101.org/article/channel-closing.html</a></p>
+<blockquote>
+<p>在使用单通道的函数中错误的关闭channel的话，编译的时候就会报错</p>
+</blockquote>
+<p>参考上述文章，针对常规情况下需要关闭channel的四种场景，做了以下总结：</p>
+<ul>
+<li>一个发送者，一个接收者：发送者关闭channel；接收者使用select或for range判断channel是否关闭</li>
+<li>一个发送者，多个接收者：同上</li>
+<li>多个发送者，一个接收者：接收者接收完后，使用专门的信号channel关闭；发送者使用select监听该信号channel是否关闭</li>
+<li>多个发送者，多个接收者：任意一方或第三方使用专门的信号channel关闭；发送者，接收者都使用select监听该信号channel是否关闭<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2>回到开头例举的爬虫案例，个人进行了改写，主要是添加了超过递归深度时的退出以及超时退出和使用信号channel通知所用生产消费的goroutine关闭。具体代码如下，还有很多完善的点，以后理解更深后再进行修改：<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> work <span class="keyword">struct</span> &#123;</span><br><span class="line">	url   <span class="type">string</span></span><br><span class="line">	depth <span class="type">int</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">crawl</span><span class="params">(w work, quit <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> []work &#123;</span><br><span class="line">	fmt.Printf(<span class="string">&quot;depth: %d, url: %s\n&quot;</span>, w.depth, w.url)</span><br><span class="line">	<span class="keyword">if</span> w.depth &gt; <span class="number">3</span> &#123;</span><br><span class="line">		quit &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	urls, err := links.Extract(w.url)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Print(err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> works []work</span><br><span class="line">	<span class="keyword">for</span> _, url := <span class="keyword">range</span> urls &#123;</span><br><span class="line">		works = <span class="built_in">append</span>(works, work&#123;url, w.depth + <span class="number">1</span>&#125;)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> works</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//!+</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	worklist := <span class="built_in">make</span>(<span class="keyword">chan</span> []work)  <span class="comment">// lists of URLs, may have duplicates</span></span><br><span class="line">	unseenLinks := <span class="built_in">make</span>(<span class="keyword">chan</span> work) <span class="comment">// de-duplicated URLs</span></span><br><span class="line">	stopCh := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)  <span class="comment">// signal chan to stop all goroutine</span></span><br><span class="line"></span><br><span class="line">	quit := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">	urls := work&#123;<span class="string">&quot;http://zorelworld.com/&quot;</span>, <span class="number">1</span>&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Add command-line arguments to worklist.</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; worklist &lt;- []work&#123;urls&#125; &#125;()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Create 20 crawler goroutines to fetch each unseen link.</span></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">20</span>; i++ &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">for</span> &#123;</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> &lt;-stopCh:</span><br><span class="line">					<span class="keyword">return</span></span><br><span class="line">				<span class="keyword">case</span> link, _ := &lt;-unseenLinks:</span><br><span class="line">					foundLinks := crawl(link, quit)</span><br><span class="line">					<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;worklist &lt;- foundLinks&#125;()</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// The main goroutine de-duplicates worklist items</span></span><br><span class="line">	<span class="comment">// and sends the unseen ones to the crawlers.</span></span><br><span class="line">	seen := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">bool</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> list := &lt;-worklist:</span><br><span class="line">			<span class="keyword">for</span> _, link := <span class="keyword">range</span> list &#123;</span><br><span class="line">				<span class="keyword">if</span> !seen[link.url] &#123;</span><br><span class="line">					seen[link.url] = <span class="literal">true</span></span><br><span class="line">					unseenLinks &lt;- link</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> &lt;-quit:</span><br><span class="line">			fmt.Println(<span class="string">&quot;Exit, 111&quot;</span>)</span><br><span class="line">			<span class="built_in">close</span>(stopCh)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		<span class="keyword">case</span> &lt;-time.After(<span class="number">3</span> * time.Second): <span class="comment">// 如果上面的ch一直没数据会阻塞, 那么select也会检测其他case条件, 检测到后3s超时退出</span></span><br><span class="line">			fmt.Println(<span class="string">&quot;Exit, timeout&quot;</span>)</span><br><span class="line">			<span class="built_in">close</span>(stopCh)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/" title="channel到底需不需要手动关闭" target="_blank" rel="external">https://zcej.github.io/2021/12/26/go/channel到底需不需要手动关闭？/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2022/02/12/go/go%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90/" title="go语言变量逃逸分析"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2021/11/19/go/%E5%85%B3%E4%BA%8Echannel%E5%92%8Cgoroutine%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E9%97%AE%E9%A2%98/" title="关于channel和goroutine的内存泄漏问题"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>go语言实现爬虫(二) | My Blog</title>
+  <meta name="description" content="使用gin封装项目目录结构如下：  api：主要业务逻辑实现，结合gin的上下文进行封装  config：项目主要配置文件  global：全局变量管理  model：结构体定义的地方  proto：定义proto文件，存放其生成的go文件  router：路由控制  storage：运行日志存储及临时结果存放  util：常用的工具类封装 1234567891011121314151617181">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go语言实现爬虫(二)">
+<meta property="og:url" content="https://zcej.github.io/2021/09/13/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%BA%8C)/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="使用gin封装项目目录结构如下：  api：主要业务逻辑实现，结合gin的上下文进行封装  config：项目主要配置文件  global：全局变量管理  model：结构体定义的地方  proto：定义proto文件，存放其生成的go文件  router：路由控制  storage：运行日志存储及临时结果存放  util：常用的工具类封装 1234567891011121314151617181">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-09-13T13:05:57.000Z">
+<meta property="article:modified_time" content="2022-05-23T09:23:53.972Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2021/09/13/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%BA%8C)/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/03/18/go/go%E5%AE%9E%E7%8E%B0%E5%A4%A7%E6%A0%B9%E5%A0%86%E3%80%81%E5%B0%8F%E6%A0%B9%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/" class="title">go语言实现大根堆、小根堆及堆排序</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-03-18T13:07:38.000Z" itemprop="datePublished">2022-03-18</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/03/05/go/channel%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/" class="title">channel的底层实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-03-05T11:43:21.000Z" itemprop="datePublished">2022-03-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/02/12/go/go%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90/" class="title">go语言变量逃逸分析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-02-12T07:16:09.000Z" itemprop="datePublished">2022-02-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/" class="title">channel到底需不需要手动关闭</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-12-25T16:31:29.000Z" itemprop="datePublished">2021-12-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/11/19/go/%E5%85%B3%E4%BA%8Echannel%E5%92%8Cgoroutine%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E9%97%AE%E9%A2%98/" class="title">关于channel和goroutine的内存泄漏问题</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-11-19T15:18:41.000Z" itemprop="datePublished">2021-11-19</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-go/个人项目实战：go语言实现爬虫(二)" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      go语言实现爬虫(二)
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2021/09/13/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%BA%8C)/" class="article-date">
+	  <time datetime="2021-09-13T13:05:57.000Z" itemprop="datePublished">2021-09-13</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/go/">go</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2021/09/13/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%BA%8C)/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="使用gin封装"><a href="#使用gin封装" class="headerlink" title="使用gin封装"></a>使用gin封装</h2><p>项目目录结构如下：</p>
+<ul>
+<li><p><code>api</code>：主要业务逻辑实现，结合gin的上下文进行封装</p>
+</li>
+<li><p><code>config</code>：项目主要配置文件</p>
+</li>
+<li><p><code>global</code>：全局变量管理</p>
+</li>
+<li><p><code>model</code>：结构体定义的地方</p>
+</li>
+<li><p><code>proto</code>：定义proto文件，存放其生成的go文件</p>
+</li>
+<li><p><code>router</code>：路由控制</p>
+</li>
+<li><p><code>storage</code>：运行日志存储及临时结果存放</p>
+</li>
+<li><p><code>util</code>：常用的工具类封装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">├─api</span><br><span class="line">│  │  base.go</span><br><span class="line">│  │</span><br><span class="line">│  └─crawler</span><br><span class="line">│      │  crawl.go</span><br><span class="line">│      │</span><br><span class="line">│      └─links</span><br><span class="line">│         links.go</span><br><span class="line">│</span><br><span class="line">├─config</span><br><span class="line">│      settings.go</span><br><span class="line">│</span><br><span class="line">├─global</span><br><span class="line">│      global.go</span><br><span class="line">│</span><br><span class="line">├─model</span><br><span class="line">│  ├─request</span><br><span class="line">│  │      request.go</span><br><span class="line">│  │</span><br><span class="line">│  └─response</span><br><span class="line">│         response.go</span><br><span class="line">│</span><br><span class="line">├─proto</span><br><span class="line">│      crawler.proto</span><br><span class="line">│</span><br><span class="line">├─router</span><br><span class="line">│      router.go</span><br><span class="line">│</span><br><span class="line">├─storage</span><br><span class="line">│  ├─logs</span><br><span class="line">│  └─tasks</span><br><span class="line">│─utils</span><br><span class="line">│   └─writer</span><br><span class="line">│         write_data.go</span><br><span class="line">│  go.mod</span><br><span class="line">│  go.sum</span><br><span class="line">│  main.go</span><br><span class="line">│  readme.md</span><br></pre></td></tr></table></figure>
+<h2 id="完善各控制流程"><a href="#完善各控制流程" class="headerlink" title="完善各控制流程"></a>完善各控制流程</h2><p>任务定义及初始化如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> work <span class="keyword">struct</span> &#123;</span><br><span class="line">	url       <span class="type">string</span> <span class="comment">// 网页链接</span></span><br><span class="line">	currDepth <span class="type">int</span>    <span class="comment">// 当前深度</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> WlcTask <span class="keyword">struct</span> &#123;</span><br><span class="line">	taskID         <span class="type">string</span>          <span class="comment">// 任务ID</span></span><br><span class="line">	workList       <span class="keyword">chan</span> []work     <span class="comment">// 存放每一个链接下一层的所有链接</span></span><br><span class="line">	workListBak    <span class="keyword">chan</span> []work     <span class="comment">// workList的备份, 用于任务的暂停与恢复</span></span><br><span class="line">	unVisitedLinks <span class="keyword">chan</span> work       <span class="comment">// 存放未访问过的链接</span></span><br><span class="line">	stopSignalCh   <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;   <span class="comment">// 用于通知所有生产消费的goroutine退出, 防止内存泄露</span></span><br><span class="line">	quitCh         <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;   <span class="comment">// 用于主动停止任务, 通过递归深度判断</span></span><br><span class="line">	statusCh       <span class="keyword">chan</span> <span class="type">string</span>     <span class="comment">// 用于记录任务状态变化</span></span><br><span class="line">	visited        <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">bool</span> <span class="comment">// 标记已访问过的链接</span></span><br><span class="line">	startUrl       []work          <span class="comment">// 开始链接</span></span><br><span class="line">	concurrency    <span class="type">int</span>             <span class="comment">// 并发数量</span></span><br><span class="line">	timeOut        <span class="type">int</span>             <span class="comment">// 超时时间设置</span></span><br><span class="line">	depth          <span class="type">int</span>             <span class="comment">// 递归深度</span></span><br><span class="line">	currDepth      <span class="type">int</span>             <span class="comment">// 当前递归深度</span></span><br><span class="line">	status         <span class="type">string</span>          <span class="comment">// 任务状态 created running stopped finished pausing resuming</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewWclTask</span><span class="params">(wlcReq *request.WlcTaskReq)</span></span> *WlcTask &#123;</span><br><span class="line">	<span class="keyword">var</span> startUrl []work</span><br><span class="line">	<span class="keyword">for</span> _, url := <span class="keyword">range</span> wlcReq.Urls &#123;</span><br><span class="line">		startUrl = <span class="built_in">append</span>(startUrl, work&#123;url: url, currDepth: <span class="number">1</span>&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	workListCh := <span class="built_in">make</span>(<span class="keyword">chan</span> []work)</span><br><span class="line">	<span class="keyword">return</span> &amp;WlcTask&#123;</span><br><span class="line">		taskID:         wlcReq.TaskID,</span><br><span class="line">		workList:       workListCh,</span><br><span class="line">		workListBak:    workListCh,</span><br><span class="line">		unVisitedLinks: <span class="built_in">make</span>(<span class="keyword">chan</span> work),</span><br><span class="line">		stopSignalCh:   <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		quitCh:         <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		statusCh:       <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">string</span>),</span><br><span class="line">		visited:        <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">bool</span>),</span><br><span class="line">		startUrl:       startUrl,</span><br><span class="line">		concurrency:    wlcReq.Concurrency,</span><br><span class="line">		timeOut:        wlcReq.Timeout,</span><br><span class="line">		depth:          wlcReq.Depth,</span><br><span class="line">		currDepth:      <span class="number">1</span>,</span><br><span class="line">		status:         config.TaskStatus.Created,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>另外，还针对<code>WlcTask</code>封装了一个改变任务状态的方法：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WlcTask)</span></span> ChangeTaskStatus() &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-w.stopSignalCh:</span><br><span class="line">			log.Printf(<span class="string">&quot;[Start] record task(%s) status goroutine exit...&quot;</span>, w.taskID)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		<span class="keyword">case</span> taskStr, ok := &lt;-w.statusCh:</span><br><span class="line">			<span class="keyword">if</span> ok &#123;</span><br><span class="line">				arr := strings.Split(taskStr, <span class="string">&quot;,&quot;</span>)</span><br><span class="line">				w.status = arr[<span class="number">0</span>]</span><br><span class="line">				currDepth, err := strconv.Atoi(arr[<span class="number">1</span>])</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Println(err)</span><br><span class="line">				&#125;</span><br><span class="line">				log.Printf(<span class="string">&quot;[Start] change task(%s) status to %s, depth is, %d&quot;</span>, w.taskID, w.status, currDepth)</span><br><span class="line"></span><br><span class="line">				<span class="comment">// recode the task info to a json file</span></span><br><span class="line">				task := request.TaskInfo&#123;</span><br><span class="line">					Status:    arr[<span class="number">0</span>],</span><br><span class="line">					CurrDepth: currDepth,</span><br><span class="line">				&#125;</span><br><span class="line">				writer.TaskInfoWriter(w.taskID, &amp;task)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WlcTask)</span></span> StartHandler(globalTask <span class="keyword">map</span>[<span class="type">string</span>]*WlcTask) &#123;</span><br><span class="line">	<span class="comment">// record the task status change</span></span><br><span class="line">	<span class="keyword">go</span> w.ChangeTaskStatus()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; w.workList &lt;- w.startUrl &#125;()</span><br><span class="line"></span><br><span class="line">	w.statusCh &lt;- fmt.Sprintf(<span class="string">&quot;%s,%d&quot;</span>, config.TaskStatus.Running, w.currDepth)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; w.concurrency; i++ &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(num <span class="type">int</span>)</span></span> &#123;</span><br><span class="line">			<span class="keyword">for</span> &#123;</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> &lt;-w.stopSignalCh:</span><br><span class="line">					log.Printf(<span class="string">&quot;[Start] task(%s) goroutine %d exit...&quot;</span>, w.taskID, num)</span><br><span class="line">					<span class="keyword">return</span></span><br><span class="line">				<span class="keyword">case</span> link, _ := &lt;-w.unVisitedLinks:</span><br><span class="line">					foundLinks := crawl(link, w.depth, w.quitCh)</span><br><span class="line">					<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; w.workList &lt;- foundLinks &#125;()</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;(i)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> list := &lt;-w.workList:</span><br><span class="line">			<span class="comment">// change taskStatus from resuming to running</span></span><br><span class="line">			<span class="keyword">if</span> w.status != config.TaskStatus.Running &#123;</span><br><span class="line">				w.status = config.TaskStatus.Running</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">for</span> _, link := <span class="keyword">range</span> list &#123;</span><br><span class="line">				<span class="keyword">if</span> !w.visited[link.url] &#123;</span><br><span class="line">					w.visited[link.url] = <span class="literal">true</span></span><br><span class="line">					w.unVisitedLinks &lt;- link</span><br><span class="line">					<span class="comment">// write crawl result to file and update currDepth</span></span><br><span class="line">					writer.TaskResultWriter(fmt.Sprintf(<span class="string">&quot;%s.txt&quot;</span>, w.taskID), fmt.Sprintln(link.url))</span><br><span class="line">					<span class="keyword">if</span> link.currDepth != w.currDepth &#123;</span><br><span class="line">						w.currDepth = link.currDepth</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> &lt;-w.quitCh:</span><br><span class="line">			log.Printf(<span class="string">&quot;[Start] task(%s) over than crawl depth, get quit signal and exit&quot;</span>, w.taskID)</span><br><span class="line">			w.statusCh &lt;- fmt.Sprintf(<span class="string">&quot;%s,%d&quot;</span>, config.TaskStatus.Stopped, w.currDepth)</span><br><span class="line">			<span class="built_in">close</span>(w.stopSignalCh)</span><br><span class="line">			<span class="built_in">delete</span>(globalTask, w.taskID)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		<span class="keyword">case</span> &lt;-time.After(time.Duration(w.timeOut) * time.Second):</span><br><span class="line">			<span class="keyword">if</span> w.status == config.TaskStatus.Pausing || w.status == config.TaskStatus.Resuming &#123;</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				log.Printf(<span class="string">&quot;[Start] task(%s) execute timeout, get timeout signal and exit&quot;</span>, w.taskID)</span><br><span class="line">				w.statusCh &lt;- fmt.Sprintf(<span class="string">&quot;%s,%d&quot;</span>, config.TaskStatus.Finished, w.currDepth)</span><br><span class="line">				<span class="built_in">close</span>(w.stopSignalCh)</span><br><span class="line">				<span class="built_in">delete</span>(globalTask, w.taskID)</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h3><p>停止较为简单，直接向退出信号channel发送消息即可：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WlcTask)</span></span> StopHandler() &#123;</span><br><span class="line">	w.quitCh &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="暂停"><a href="#暂停" class="headerlink" title="暂停"></a>暂停</h3><p>暂停的思路是将数据传输的channel赋值为nil，则相关的goroutine会阻塞进而整个执行暂停。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WlcTask)</span></span> PauseHandler() &#123;</span><br><span class="line">	<span class="keyword">if</span> w.status == config.TaskStatus.Pausing &#123;</span><br><span class="line">		log.Printf(<span class="string">&quot;[Pause] task(%s) is already pause, can&#x27;t pause again&quot;</span>, w.taskID)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> w.status == config.TaskStatus.Stopped || w.status == config.TaskStatus.Finished &#123;</span><br><span class="line">		log.Printf(<span class="string">&quot;[Pause] task(%s) is closed, can&#x27;t pause&quot;</span>, w.taskID)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	w.statusCh &lt;- fmt.Sprintf(<span class="string">&quot;%s,%d&quot;</span>, config.TaskStatus.Pausing, w.currDepth)</span><br><span class="line">	w.workList = <span class="literal">nil</span></span><br><span class="line">	log.Printf(<span class="string">&quot;[Pause] task(%s) is pausing&quot;</span>, w.taskID)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="恢复"><a href="#恢复" class="headerlink" title="恢复"></a>恢复</h3><p>将之前备份好的数据channel重新赋值给当前使用的channel，则相关goroutine会接着运行。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WlcTask)</span></span> ResumingHandler() &#123;</span><br><span class="line">	<span class="keyword">if</span> w.status != config.TaskStatus.Pausing &#123;</span><br><span class="line">		log.Printf(<span class="string">&quot;[Resume] task(%s) is not pausing, can&#x27;t resume&quot;</span>, w.taskID)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	w.workList = w.workListBak</span><br><span class="line">	w.statusCh &lt;- fmt.Sprintf(<span class="string">&quot;%s,%d&quot;</span>, config.TaskStatus.Resuming, w.currDepth)</span><br><span class="line">	log.Printf(<span class="string">&quot;[Resume] task(%s) is resuming&quot;</span>, w.taskID)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="状态及结果获取"><a href="#状态及结果获取" class="headerlink" title="状态及结果获取"></a>状态及结果获取</h3><p>状态获取：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WlcTask)</span></span> StatusHandler() (status <span class="type">string</span>, currDepth <span class="type">int</span>) &#123;</span><br><span class="line">	<span class="keyword">return</span> w.status, w.currDepth</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果获取：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ResultHandler</span><span class="params">(taskID <span class="type">string</span>)</span></span> (links []<span class="type">string</span>, err <span class="type">error</span>) &#123;</span><br><span class="line">	f, err := ioutil.ReadFile(taskID + <span class="string">&quot;.txt&quot;</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	links = strings.Split(<span class="type">string</span>(f), <span class="string">&quot;\n&quot;</span>)</span><br><span class="line">	<span class="keyword">return</span> links[:<span class="built_in">len</span>(links)<span class="number">-1</span>], <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2></li>
+<li><p>本文使用的是channel控制整个流程，当换成标准库context时如何编写？</p>
+</li>
+<li><p>路由的地方有重复性的地方，考虑如何优化？</p>
+</li>
+<li><p>当前项目未自定义错误，如何完善整个项目的异常处理？</p>
+</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2021/09/13/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%BA%8C)/" title="go语言实现爬虫(二)" target="_blank" rel="external">https://zcej.github.io/2021/09/13/go/个人项目实战：go语言实现爬虫(二)/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2021/09/16/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%B8%89)/" title="go语言实现爬虫(三)"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2021/09/06/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%B8%80)/" title="go语言实现爬虫(一)"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
