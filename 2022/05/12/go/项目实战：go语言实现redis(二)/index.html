@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>项目实战：go语言实现redis(二) | My Blog</title>
+  <meta name="description" content="背景本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考github上的相关代码。主体上有下面几个部分：  TCP服务器(一)：支持同时监听多个TCP连接，并进行相关处理 Redis协议解析器(一)：实现相关Handler，命令解析及响应处理 **内存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="项目实战：go语言实现redis(二)">
+<meta property="og:url" content="https://zcej.github.io/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考github上的相关代码。主体上有下面几个部分：  TCP服务器(一)：支持同时监听多个TCP连接，并进行相关处理 Redis协议解析器(一)：实现相关Handler，命令解析及响应处理 **内存">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-12T15:06:31.000Z">
+<meta property="article:modified_time" content="2022-06-28T15:56:20.131Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/" class="title">项目实战：go语言实现redis(四)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-27T12:51:46.000Z" itemprop="datePublished">2022-05-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/" class="title">项目实战：go语言实现redis(三)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-21T02:14:09.000Z" itemprop="datePublished">2022-05-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/" class="title">项目实战：go语言实现redis(二)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-12T15:06:31.000Z" itemprop="datePublished">2022-05-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/" class="title">项目实战：go语言实现redis(一)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-08T14:41:18.000Z" itemprop="datePublished">2022-05-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/03/18/go/go%E5%AE%9E%E7%8E%B0%E5%A4%A7%E6%A0%B9%E5%A0%86%E3%80%81%E5%B0%8F%E6%A0%B9%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/" class="title">go语言实现大根堆、小根堆及堆排序</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-03-18T13:07:38.000Z" itemprop="datePublished">2022-03-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-go/项目实战：go语言实现redis(二)" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      项目实战：go语言实现redis(二)
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/" class="article-date">
+	  <time datetime="2022-05-12T15:06:31.000Z" itemprop="datePublished">2022-05-12</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/go/">go</a>►<a class="article-category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考<a target="_blank" rel="noopener" href="https://github.com/zcej/go-redis">github</a>上的相关代码。主体上有下面几个部分：</p>
+<ul>
+<li>TCP服务器(一)：支持同时监听多个TCP连接，并进行相关处理</li>
+<li>Redis协议解析器(一)：实现相关Handler，命令解析及响应处理</li>
+<li>**内存数据库(二)**：实现数据库，注册相关命令，完成支持对数据库的增删改查</li>
+<li>Redis持久化(三)</li>
+<li>Redis集群(四)</li>
+</ul>
+<p>本章的项目目录结构如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">├─config</span><br><span class="line">│</span><br><span class="line">├─database</span><br><span class="line">│  command.go</span><br><span class="line">│  database.go</span><br><span class="line">│  db.go</span><br><span class="line">│  echo_database.go</span><br><span class="line">│  keys.go</span><br><span class="line">│  ping.go</span><br><span class="line">│  string.go</span><br><span class="line">│</span><br><span class="line">├─datastruct</span><br><span class="line">│  └─dict</span><br><span class="line">│     simple_dict.go</span><br><span class="line">│     sync_dict.go</span><br><span class="line">│</span><br><span class="line">├─interface</span><br><span class="line">│  ├─database</span><br><span class="line">│  │</span><br><span class="line">│  ├─dict</span><br><span class="line">│  │  dict.go</span><br><span class="line">│  │</span><br><span class="line">│  ├─resp</span><br><span class="line">│  │</span><br><span class="line">│  └─tcp</span><br><span class="line">│</span><br><span class="line">├─lib</span><br><span class="line">│</span><br><span class="line">├─resp</span><br><span class="line">│  ├─connection</span><br><span class="line">│  │</span><br><span class="line">│  ├─handler</span><br><span class="line">│  │</span><br><span class="line">│  ├─parser</span><br><span class="line">│  │</span><br><span class="line">│  └─reply</span><br><span class="line">│</span><br><span class="line">├─tcp</span><br><span class="line">│ </span><br><span class="line">│ go.mod</span><br><span class="line">│ main.go</span><br><span class="line">│ redis.conf</span><br></pre></td></tr></table></figure>
+<h2 id="数据底层存储"><a href="#数据底层存储" class="headerlink" title="数据底层存储"></a>数据底层存储</h2><h3 id="定义及实现Dict接口"><a href="#定义及实现Dict接口" class="headerlink" title="定义及实现Dict接口"></a>定义及实现Dict接口</h3><p>在<code>interface/dict/dict.go</code>中定义Dict接口，包含下述方法：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Consumer is used to traversal dict, if it returns false the traversal will be break</span></span><br><span class="line"><span class="keyword">type</span> Consumer <span class="function"><span class="keyword">func</span><span class="params">(key <span class="type">string</span>, val <span class="keyword">interface</span>&#123;&#125;)</span></span> <span class="type">bool</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Dict is interface of a key-value data structure</span></span><br><span class="line"><span class="keyword">type</span> Dict <span class="keyword">interface</span> &#123;</span><br><span class="line">    Get(key <span class="type">string</span>) (val <span class="keyword">interface</span>&#123;&#125;, exists <span class="type">bool</span>)</span><br><span class="line">    Len() <span class="type">int</span></span><br><span class="line">    Put(key <span class="type">string</span>, val <span class="keyword">interface</span>&#123;&#125;) (result <span class="type">int</span>)</span><br><span class="line">    PutIfAbsent(key <span class="type">string</span>, val <span class="keyword">interface</span>&#123;&#125;) (result <span class="type">int</span>)</span><br><span class="line">    PutIfExists(key <span class="type">string</span>, val <span class="keyword">interface</span>&#123;&#125;) (result <span class="type">int</span>)</span><br><span class="line">    Remove(key <span class="type">string</span>) (result <span class="type">int</span>)</span><br><span class="line">    ForEach(consumer Consumer)</span><br><span class="line">    Keys() []<span class="type">string</span></span><br><span class="line">    RandomKeys(limit <span class="type">int</span>) []<span class="type">string</span></span><br><span class="line">    RandomDistinctKeys(limit <span class="type">int</span>) []<span class="type">string</span></span><br><span class="line">    Clear()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后在<code>datastruct/dict/sync_dict.go</code>中实现一个并发安全的dict。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// SyncDict wraps a map, it is not thread safe</span></span><br><span class="line"><span class="keyword">type</span> SyncDict <span class="keyword">struct</span> &#123;</span><br><span class="line">    m sync.Map</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MakeSyncDict makes a new map</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeSyncDict</span><span class="params">()</span></span> *SyncDict &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;SyncDict&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Get returns the binding value and whether the key is exist</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> Get(key <span class="type">string</span>) (val <span class="keyword">interface</span>&#123;&#125;, exists <span class="type">bool</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Len returns the number of dict</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> Len() <span class="type">int</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Put puts key value into dict and returns the number of new inserted key-value</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> Put(key <span class="type">string</span>, val <span class="keyword">interface</span>&#123;&#125;) (result <span class="type">int</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// PutIfAbsent puts value if the key is not exists and returns the number of updated key-value</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> PutIfAbsent(key <span class="type">string</span>, val <span class="keyword">interface</span>&#123;&#125;) (result <span class="type">int</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// PutIfExists puts value if the key is exist and returns the number of inserted key-value</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> PutIfExists(key <span class="type">string</span>, val <span class="keyword">interface</span>&#123;&#125;) (result <span class="type">int</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Remove removes the key and return the number of deleted key-value</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> Remove(key <span class="type">string</span>) (result <span class="type">int</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Keys returns all keys in dict</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> Keys() []<span class="type">string</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ForEach traversal the dict</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> ForEach(consumer iDict.Consumer) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// RandomKeys randomly returns keys of the given number, may contain duplicated key</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> RandomKeys(limit <span class="type">int</span>) []<span class="type">string</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// RandomDistinctKeys randomly returns keys of the given number, won&#x27;t contain duplicated key</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> RandomDistinctKeys(limit <span class="type">int</span>) []<span class="type">string</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Clear removes all keys in dict</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(dict *SyncDict)</span></span> Clear() &#123;&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：非并发安全的实现可参考<code>datastruct/dict/simple_dict.go</code></p>
+</blockquote>
+<h3 id="定义DB结构体"><a href="#定义DB结构体" class="headerlink" title="定义DB结构体"></a>定义DB结构体</h3><p>在<code>database/db.go</code>定义DB结构体，它是对底层<code>Dict</code>相关操作的进一步封装，根据接收到的实际命令找到对应的方法并执行，其核心是<code>Exec</code>方法。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DB stores data and execute user&#x27;s commands</span></span><br><span class="line"><span class="keyword">type</span> DB <span class="keyword">struct</span> &#123;</span><br><span class="line">    index <span class="type">int</span></span><br><span class="line">    data  dict.Dict <span class="comment">// key -&gt; DataEntity</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// makeDB create DB instance</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeDB</span><span class="params">()</span></span> *DB &#123;</span><br><span class="line">    db := &amp;DB&#123;data: dict.MakeSyncDict()&#125;</span><br><span class="line">    <span class="keyword">return</span> db</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Exec executes command within one database</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> Exec(c resp.Connection, cmdLine [][]<span class="type">byte</span>) resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// GetEntity returns DataEntity bind to given key</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> GetEntity(key <span class="type">string</span>) (*database.DataEntity, <span class="type">bool</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// PutEntity a DataEntity into DB</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> PutEntity(key <span class="type">string</span>, entity *database.DataEntity) <span class="type">int</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// PutIfExists edit an existing DataEntity</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> PutIfExists(key <span class="type">string</span>, entity *database.DataEntity) <span class="type">int</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Remove the given key from db</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> Remove(key <span class="type">string</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Removes the given keys from db</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> Removes(keys ...<span class="type">string</span>) (deleted <span class="type">int</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Flush clean database</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> Flush() &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">validateArity</span><span class="params">(arity <span class="type">int</span>, cmdArgs [][]<span class="type">byte</span>)</span></span> <span class="type">bool</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="命令注册及实现"><a href="#命令注册及实现" class="headerlink" title="命令注册及实现"></a>命令注册及实现</h2><h3 id="命令的注册"><a href="#命令的注册" class="headerlink" title="命令的注册"></a>命令的注册</h3><p><code>database/command.go</code>主要包含以下三个部分：</p>
+<ul>
+<li><code>cmdTable</code>：类型为字典，功能为存储命令及对应命令的结构体</li>
+<li><code>command</code>：类型为结构体，包含命令对应的实际方法以及参数数量</li>
+<li><code>RegisterCommand</code>：类型为一个函数，用于实现命令注册全局表中<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> cmdTable = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]*command)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> command <span class="keyword">struct</span> &#123;</span><br><span class="line">    executor ExecFunc</span><br><span class="line">    arity    <span class="type">int</span> <span class="comment">// allow number of args, arity &lt; 0 means len(args) &gt;= -arity</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// RegisterCommand registers a new command</span></span><br><span class="line"><span class="comment">// arity means allowed number of cmdArgs, arity &lt; 0 means len(args) &gt;= -arity.</span></span><br><span class="line"><span class="comment">// for example: the arity of `get` is 2, `mget` is -2</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RegisterCommand</span><span class="params">(name <span class="type">string</span>, executor ExecFunc, arity <span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    name = strings.ToLower(name)</span><br><span class="line">    cmdTable[name] = &amp;command&#123;</span><br><span class="line">        executor: executor,</span><br><span class="line">        arity:    arity,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="命令的实现"><a href="#命令的实现" class="headerlink" title="命令的实现"></a>命令的实现</h3><h4 id="ping的实现与注册"><a href="#ping的实现与注册" class="headerlink" title="ping的实现与注册"></a>ping的实现与注册</h4>在文件<code>database/ping.go</code>中的<code>init()</code>方法下将命令及其对应的处理函数注册到全局表中：<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    RegisterCommand(<span class="string">&quot;ping&quot;</span>, Ping, <span class="number">-1</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Ping the server</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Ping</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="keys指令集的实现与注册"><a href="#keys指令集的实现与注册" class="headerlink" title="keys指令集的实现与注册"></a>keys指令集的实现与注册</h4>在文件<code>database/keys.go</code>中的<code>init()</code>方法下将命令及其对应的处理函数注册到全局表中：<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    RegisterCommand(<span class="string">&quot;Del&quot;</span>, execDel, <span class="number">-2</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;Exists&quot;</span>, execExists, <span class="number">-2</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;Keys&quot;</span>, execKeys, <span class="number">2</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;FlushDB&quot;</span>, execFlushDB, <span class="number">-1</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;Type&quot;</span>, execType, <span class="number">2</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;Rename&quot;</span>, execRename, <span class="number">3</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;RenameNx&quot;</span>, execRenameNx, <span class="number">3</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+并实现相关函数：<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// execDel removes a key from db</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execDel</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execExists checks if a is existed in db</span></span><br><span class="line"><span class="function"><span class="keyword">func</span>  <span class="title">execExists</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execFlushDB removes all data in current db</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execFlushDB</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execType returns the type of entity, including: string, list, hash, set and zset</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execType</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execRename a key</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execRename</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execRenameNx a key, only if the new key does not exist</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execRenameNx</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execKeys returns all keys matching the given pattern</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execKeys</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="string指令集的实现与注册"><a href="#string指令集的实现与注册" class="headerlink" title="string指令集的实现与注册"></a>string指令集的实现与注册</h4>在文件<code>database/string.go</code>中的<code>init()</code>方法下将命令及其对应的处理函数注册到全局表中：<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    RegisterCommand(<span class="string">&quot;Get&quot;</span>, execGet, <span class="number">2</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;Set&quot;</span>, execSet, <span class="number">-3</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;SetNx&quot;</span>, execSetNX, <span class="number">3</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;GetSet&quot;</span>, execGetSet, <span class="number">3</span>)</span><br><span class="line">    RegisterCommand(<span class="string">&quot;StrLen&quot;</span>, execStrLen, <span class="number">2</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+并实现相关函数：<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> getAsString(key <span class="type">string</span>) ([]<span class="type">byte</span>, reply.ErrorReply) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execGet returns string value bound to the given key</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execGet</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execSet sets string value and time to live to the given key</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execSet</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execSetNX sets string if not exists</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execSetNX</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execGetSet sets value of a string-type key and returns its old value</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execGetSet</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// execStrLen returns len of string value bound to the given key</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execStrLen</span><span class="params">(db *DB, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="实现数据库核心"><a href="#实现数据库核心" class="headerlink" title="实现数据库核心"></a>实现数据库核心</h2>在<code>database/database.go</code>中定义结构体Database，需实现第一篇文章中定义的Database接口，并进行初始化，创建16个数据库表，另外还需要注意执行命令时所在db的选择，这里封装了一个选择db的函数<code>execSelect</code>。<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Database is a set of multiple database set</span></span><br><span class="line"><span class="keyword">type</span> Database <span class="keyword">struct</span> &#123;</span><br><span class="line">    dbSet []*DB</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewDatabase creates a redis database,</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewDatabase</span><span class="params">()</span></span> *Database &#123;</span><br><span class="line">    mdb := &amp;Database&#123;&#125;</span><br><span class="line">    <span class="keyword">if</span> config.Properties.Databases == <span class="number">0</span> &#123;</span><br><span class="line">        config.Properties.Databases = <span class="number">16</span></span><br><span class="line">    &#125;</span><br><span class="line">    mdb.dbSet = <span class="built_in">make</span>([]*DB, config.Properties.Databases)</span><br><span class="line">    <span class="keyword">for</span> i := <span class="keyword">range</span> mdb.dbSet &#123;</span><br><span class="line">        singleDB := makeDB()</span><br><span class="line">        singleDB.index = i</span><br><span class="line">        mdb.dbSet[i] = singleDB</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mdb</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Exec executes command</span></span><br><span class="line"><span class="comment">// parameter `cmdLine` contains command and its arguments, for example: &quot;set key value&quot;</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mdb *Database)</span></span> Exec(c resp.Connection, cmdLine [][]<span class="type">byte</span>) (result resp.Reply) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Close graceful shutdown database</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mdb *Database)</span></span> Close() &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mdb *Database)</span></span> AfterClientClose(c resp.Connection) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">execSelect</span><span class="params">(c resp.Connection, mdb *Database, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br></pre></td></tr></table></figure>
+然后将<code>resp/handler/handler.go</code>中的初始化数据库改为上述实现的数据库即可。<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2>到目前为止一个单体的redis应用已基本完成，可以暂不关注每个方法的具体实现，但是一定要理解整个调用逻辑，做到融会贯通。首先处理TCP连接，选择对应的handler，由handler初始化database，同时对conn封装，选择对应的数据库执行命令，在项目一开始运行的时候会将代码中已实现的命令注册到全局表中。接下来将实现redis的持久化与集群的相关功能。</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/" title="项目实战：go语言实现redis(二)" target="_blank" rel="external">https://zcej.github.io/2022/05/12/go/项目实战：go语言实现redis(二)/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/" title="项目实战：go语言实现redis(三)"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/" title="项目实战：go语言实现redis(一)"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

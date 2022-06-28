@@ -26,7 +26,7 @@
 <meta property="og:description" content="go实现了内存的自动管理，其主要包括两个动作：分配与释放。为了更好的理解逃逸分析，需要对堆和栈有一定的了解。 堆和栈应用程序的内存载体，可以简单分为堆和栈。 在go中，栈的内存是由编译器进行分配和释放，栈区往往存储着函数参数、局部变量和调用函数帧，它们随着函数的创建而分配，函数的退出而销毁。一个goroutine对应一个栈，栈是调用栈的简称。一个栈通常又包含了许多栈帧，它描述的函数之间的调用关系，">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-02-12T07:16:09.000Z">
-<meta property="article:modified_time" content="2022-05-23T09:44:09.744Z">
+<meta property="article:modified_time" content="2022-06-28T16:22:59.830Z">
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
@@ -212,7 +212,7 @@
   <div class="widget">
     <h3 class="widget-title">分类</h3>
     <div class="widget-body">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">2</span></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">2</span></li></ul>
     </div>
   </div>
 
@@ -227,7 +227,7 @@
   <div class="widget">
     <h3 class="widget-title">归档</h3>
     <div class="widget-body">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
     </div>
   </div>
 
@@ -243,6 +243,66 @@
             
             <div class="item-inner">
               <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/" class="title">项目实战：go语言实现redis(四)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-27T12:51:46.000Z" itemprop="datePublished">2022-05-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/" class="title">项目实战：go语言实现redis(三)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-21T02:14:09.000Z" itemprop="datePublished">2022-05-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/" class="title">项目实战：go语言实现redis(二)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-12T15:06:31.000Z" itemprop="datePublished">2022-05-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/" class="title">项目实战：go语言实现redis(一)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-08T14:41:18.000Z" itemprop="datePublished">2022-05-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
                 <a class="category-link" href="/categories/go/">go</a>
               </p>
               <p class="item-title">
@@ -250,66 +310,6 @@
               </p>
               <p class="item-date">
                 <time datetime="2022-03-18T13:07:38.000Z" itemprop="datePublished">2022-03-18</time>
-              </p>
-            </div>
-          </li>
-          
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category">
-                <a class="category-link" href="/categories/go/">go</a>
-              </p>
-              <p class="item-title">
-                <a href="/2022/03/05/go/channel%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/" class="title">channel的底层实现</a>
-              </p>
-              <p class="item-date">
-                <time datetime="2022-03-05T11:43:21.000Z" itemprop="datePublished">2022-03-05</time>
-              </p>
-            </div>
-          </li>
-          
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category">
-                <a class="category-link" href="/categories/go/">go</a>
-              </p>
-              <p class="item-title">
-                <a href="/2022/02/12/go/go%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90/" class="title">go语言变量逃逸分析</a>
-              </p>
-              <p class="item-date">
-                <time datetime="2022-02-12T07:16:09.000Z" itemprop="datePublished">2022-02-12</time>
-              </p>
-            </div>
-          </li>
-          
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category">
-                <a class="category-link" href="/categories/go/">go</a>
-              </p>
-              <p class="item-title">
-                <a href="/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/" class="title">channel到底需不需要手动关闭</a>
-              </p>
-              <p class="item-date">
-                <time datetime="2021-12-25T16:31:29.000Z" itemprop="datePublished">2021-12-26</time>
-              </p>
-            </div>
-          </li>
-          
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category">
-                <a class="category-link" href="/categories/go/">go</a>
-              </p>
-              <p class="item-title">
-                <a href="/2021/11/19/go/%E5%85%B3%E4%BA%8Echannel%E5%92%8Cgoroutine%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E9%97%AE%E9%A2%98/" class="title">关于channel和goroutine的内存泄漏问题</a>
-              </p>
-              <p class="item-date">
-                <time datetime="2021-11-19T15:18:41.000Z" itemprop="datePublished">2021-11-19</time>
               </p>
             </div>
           </li>
@@ -388,7 +388,7 @@
 </blockquote>
 <h3 id="情况二：暴露给外部指针"><a href="#情况二：暴露给外部指针" class="headerlink" title="情况二：暴露给外部指针"></a>情况二：暴露给外部指针</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">()</span></span> *<span class="type">int</span> &#123;</span><br><span class="line">    a := <span class="number">666</span></span><br><span class="line">    <span class="keyword">return</span> &amp;a</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    _ = foo()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// # command-line-arguments</span></span><br><span class="line"><span class="comment">// .\main.go:4:2: moved to heap: a</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>变量存在外部引用则必定分配到堆上。</p>
-<h3 id="情况三：变量所占内存较大"><a href="#情况三：变量所占内存较大" class="headerlink" title="情况三：变量所占内存较大"></a>情况三：变量所占内存较大</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">()</span></span> &#123;</span><br><span class="line">	s := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">10000</span>, <span class="number">10000</span>)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(s); i++ &#123;</span><br><span class="line">		s[i] = i</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	foo()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// # command-line-arguments</span></span><br><span class="line"><span class="comment">// .\main.go:4:11: make([]int, 10000, 10000) escapes to heap</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="情况三：变量所占内存较大"><a href="#情况三：变量所占内存较大" class="headerlink" title="情况三：变量所占内存较大"></a>情况三：变量所占内存较大</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">()</span></span> &#123;</span><br><span class="line">    s := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">10000</span>, <span class="number">10000</span>)</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(s); i++ &#123;</span><br><span class="line">        s[i] = i</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    foo()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// # command-line-arguments</span></span><br><span class="line"><span class="comment">// .\main.go:4:11: make([]int, 10000, 10000) escapes to heap</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>这里需要注意，在go中执行用户代码的goroutine是一种用户态线程，其调用栈内存被称为用户栈，它其实也是从堆区分配的，但是我们仍然可以将其看作和系统栈一样的内存空间，它的分配和释放都是通过编译器完成的。与其对应的是系统栈，它的分配和释放是操作系统完成的。在GMP模型中，一个M对应一个系统栈(也称为M的g0栈)，M上的多个goroutine会共享该系统栈。</p>
 <ul>
 <li><p>不同架构的系统栈最大限制不同，以x86_64为例，其系统栈最大为8mb</p>
@@ -396,7 +396,7 @@
 <li><p>我们常说的goroutine初始大小为2kb，说的是用户栈，可在<code>runtime/stack.go</code>中找到</p>
 </li>
 <li><p>在go中大对象的范围为大于32kb，即上述代码中的n达到8192，就会逃逸</p>
-<h3 id="情况四：变量大小不确定"><a href="#情况四：变量大小不确定" class="headerlink" title="情况四：变量大小不确定"></a>情况四：变量大小不确定</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">()</span></span> &#123;</span><br><span class="line">	n := <span class="number">1</span></span><br><span class="line">	s := <span class="built_in">make</span>([]<span class="type">int</span>, n)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(s); i++ &#123;</span><br><span class="line">		s[i] = i</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	foo()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// # command-line-arguments</span></span><br><span class="line"><span class="comment">// .\main.go:5:11: make([]int, n) escapes to heap</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="情况四：变量大小不确定"><a href="#情况四：变量大小不确定" class="headerlink" title="情况四：变量大小不确定"></a>情况四：变量大小不确定</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">()</span></span> &#123;</span><br><span class="line">    n := <span class="number">1</span></span><br><span class="line">    s := <span class="built_in">make</span>([]<span class="type">int</span>, n)</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(s); i++ &#123;</span><br><span class="line">        s[i] = i</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    foo()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// # command-line-arguments</span></span><br><span class="line"><span class="comment">// .\main.go:5:11: make([]int, n) escapes to heap</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>这次，在<code>make</code>方法中，没有直接指定大小，而是填入了变量<code>n</code>，这时go逃逸分析也会将其分配到堆区去。可见，为了保证内存的绝对安全，go的编译器可能会将一些变量不合时宜地分配到堆上，但是因为这些对象最终也会被垃圾收集器处理，所以也能接受。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2></li>
 <li><p>发生逃逸的情况还有很多，理解其思想才是最为重要的。</p>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>项目实战：go语言实现redis(一) | My Blog</title>
+  <meta name="description" content="背景本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考github上的相关代码。主体上有下面几个部分：  **TCP服务器(一)**：支持同时监听多个TCP连接，并进行相关处理  **Redis协议解析器(一)**：实现相关Handler，命令解析及">
+<meta property="og:type" content="article">
+<meta property="og:title" content="项目实战：go语言实现redis(一)">
+<meta property="og:url" content="https://zcej.github.io/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考github上的相关代码。主体上有下面几个部分：  **TCP服务器(一)**：支持同时监听多个TCP连接，并进行相关处理  **Redis协议解析器(一)**：实现相关Handler，命令解析及">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-08T14:41:18.000Z">
+<meta property="article:modified_time" content="2022-06-28T16:06:11.479Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/" class="title">项目实战：go语言实现redis(四)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-27T12:51:46.000Z" itemprop="datePublished">2022-05-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/" class="title">项目实战：go语言实现redis(三)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-21T02:14:09.000Z" itemprop="datePublished">2022-05-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/" class="title">项目实战：go语言实现redis(二)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-12T15:06:31.000Z" itemprop="datePublished">2022-05-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/" class="title">项目实战：go语言实现redis(一)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-08T14:41:18.000Z" itemprop="datePublished">2022-05-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/03/18/go/go%E5%AE%9E%E7%8E%B0%E5%A4%A7%E6%A0%B9%E5%A0%86%E3%80%81%E5%B0%8F%E6%A0%B9%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/" class="title">go语言实现大根堆、小根堆及堆排序</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-03-18T13:07:38.000Z" itemprop="datePublished">2022-03-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-go/项目实战：go语言实现redis(一)" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      项目实战：go语言实现redis(一)
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/" class="article-date">
+	  <time datetime="2022-05-08T14:41:18.000Z" itemprop="datePublished">2022-05-08</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/go/">go</a>►<a class="article-category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考<a target="_blank" rel="noopener" href="https://github.com/zcej/go-redis">github</a>上的相关代码。主体上有下面几个部分：</p>
+<ul>
+<li><p>**TCP服务器(一)**：支持同时监听多个TCP连接，并进行相关处理</p>
+</li>
+<li><p>**Redis协议解析器(一)**：实现相关Handler，命令解析及响应处理</p>
+</li>
+<li><p>内存数据库(二)</p>
+</li>
+<li><p>Redis持久化(三)</p>
+</li>
+<li><p>Redis集群(四)</p>
+<h2 id="实现TCP服务器"><a href="#实现TCP服务器" class="headerlink" title="实现TCP服务器"></a>实现TCP服务器</h2><p>项目初始化，主要包括相关配置，日志处理，以及定义相关接口或结构体。当前目录结构如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">├─config</span><br><span class="line">│  config.go</span><br><span class="line">│</span><br><span class="line">├─interface</span><br><span class="line">│  └─tcp</span><br><span class="line">│     handler.go</span><br><span class="line">│</span><br><span class="line">├─lib</span><br><span class="line">│</span><br><span class="line">├─tcp</span><br><span class="line">│   echo.go</span><br><span class="line">│   server.go</span><br><span class="line">│ </span><br><span class="line">| go.mod</span><br><span class="line">| main.go</span><br><span class="line">| redis.conf</span><br></pre></td></tr></table></figure>
+<h3 id="项目初始化"><a href="#项目初始化" class="headerlink" title="项目初始化"></a>项目初始化</h3><h4 id="配置文件解析"><a href="#配置文件解析" class="headerlink" title="配置文件解析"></a>配置文件解析</h4><p>在<code>config/config.go</code>文件中定义Redis相关服务端属性如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> config</span><br><span class="line"></span><br><span class="line"><span class="comment">// ServerProperties defines global config properties</span></span><br><span class="line"><span class="keyword">type</span> ServerProperties <span class="keyword">struct</span> &#123;</span><br><span class="line">    Bind           <span class="type">string</span>   <span class="string">`cfg:&quot;bind&quot;`</span></span><br><span class="line">    Port           <span class="type">int</span>      <span class="string">`cfg:&quot;port&quot;`</span></span><br><span class="line">    AppendOnly     <span class="type">bool</span>     <span class="string">`cfg:&quot;appendOnly&quot;`</span></span><br><span class="line">    AppendFilename <span class="type">string</span>   <span class="string">`cfg:&quot;appendFilename&quot;`</span></span><br><span class="line">    MaxClients     <span class="type">int</span>      <span class="string">`cfg:&quot;maxclients&quot;`</span></span><br><span class="line">    RequirePass    <span class="type">string</span>   <span class="string">`cfg:&quot;requirepass&quot;`</span></span><br><span class="line">    Databases      <span class="type">int</span>      <span class="string">`cfg:&quot;databases&quot;`</span></span><br><span class="line"></span><br><span class="line">    Peers          []<span class="type">string</span> <span class="string">`cfg:&quot;peers&quot;`</span></span><br><span class="line">    Self           <span class="type">string</span>   <span class="string">`cfg:&quot;self&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Properties holds global config properties</span></span><br><span class="line"><span class="keyword">var</span> Properties *ServerProperties</span><br></pre></td></tr></table></figure>
+<p>另外，还需要实现配置文件解析的相关方法：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// SetupConfig read config file and store properties into Properties</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupConfig</span><span class="params">(configFilename <span class="type">string</span>)</span></span> &#123;</span><br><span class="line">    file, err := os.Open(configFilename)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">defer</span> file.Close()</span><br><span class="line">    Properties = parse(file)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">parse</span><span class="params">(src io.Reader)</span></span> *ServerProperties &#123;</span><br><span class="line">    config := &amp;ServerProperties&#123;&#125;</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> config</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为了防止没有配置文件的情况下也能正常初始化，可以添加如下代码：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// default config</span></span><br><span class="line">    Properties = &amp;ServerProperties&#123;</span><br><span class="line">        Bind:       <span class="string">&quot;127.0.0.1&quot;</span>,</span><br><span class="line">        Port:       <span class="number">6379</span>,</span><br><span class="line">        AppendOnly: <span class="literal">false</span>,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="接口定义"><a href="#接口定义" class="headerlink" title="接口定义"></a>接口定义</h4><p>在<code>interface/tcp/handler.go</code>中需要定义相关接口，以规范化处理tcp的连接：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Handler represents application server over tcp</span></span><br><span class="line"><span class="keyword">type</span> Handler <span class="keyword">interface</span> &#123;</span><br><span class="line">    Handle(ctx context.Context, conn net.Conn)</span><br><span class="line">    Close() <span class="type">error</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="TCP服务实现"><a href="#TCP服务实现" class="headerlink" title="TCP服务实现"></a>TCP服务实现</h3><h4 id="并发处理tcp连接"><a href="#并发处理tcp连接" class="headerlink" title="并发处理tcp连接"></a>并发处理tcp连接</h4><p>在<code>tcp/server.go</code>中实现以下两个函数，用于处理tcp连接，此处主要依赖标准库<code>net</code>：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Config stores tcp handler properties</span></span><br><span class="line"><span class="keyword">type</span> Config <span class="keyword">struct</span> &#123;</span><br><span class="line">    Address    <span class="type">string</span>        <span class="string">`yaml:&quot;address&quot;`</span></span><br><span class="line">    MaxConnect <span class="type">uint32</span>        <span class="string">`yaml:&quot;max-connect&quot;`</span></span><br><span class="line">    Timeout    time.Duration <span class="string">`yaml:&quot;timeout&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ListenAndServeWithSignal binds port and handle requests, blocking until receive stop signal</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ListenAndServeWithSignal</span><span class="params">(cfg *Config, handler tcp.Handler)</span></span> <span class="type">error</span> &#123;</span><br><span class="line">    closeChan := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">    ...</span><br><span class="line">    listener, err := net.Listen(<span class="string">&quot;tcp&quot;</span>, cfg.Address)</span><br><span class="line">    ...</span><br><span class="line">    ListenAndServe(listener, handler, closeChan)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ListenAndServe binds port and handle requests, blocking until close</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ListenAndServe</span><span class="params">(listener net.Listener, handler tcp.Handler, closeChan &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span>&#123;</span><br><span class="line">        &lt;-closeChan</span><br><span class="line">        listener.Close()</span><br><span class="line">        handler.Close()</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        conn, err := listener.Accept()</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            handler.Handle(ctx, conn)</span><br><span class="line">        &#125;()</span><br><span class="line">    &#125;</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="main函数入口实现"><a href="#main函数入口实现" class="headerlink" title="main函数入口实现"></a>main函数入口实现</h4><p>此时<code>main.go</code>中需要调用的函数已基本实现，后续修改只需传入对应的Handler即可：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;go-redis/config&quot;</span></span><br><span class="line">    <span class="string">&quot;go-redis/lib/logger&quot;</span></span><br><span class="line">    <span class="string">&quot;go-redis/tcp&quot;</span></span><br><span class="line">    EchoHandler <span class="string">&quot;go-redis/tcp&quot;</span></span><br><span class="line">    <span class="string">&quot;os&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> configFile <span class="type">string</span> = <span class="string">&quot;redis.conf&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> defaultProperties = &amp;config.ServerProperties&#123;</span><br><span class="line">    Bind: <span class="string">&quot;0.0.0.0&quot;</span>,</span><br><span class="line">    Port: <span class="number">6379</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">fileExists</span><span class="params">(filename <span class="type">string</span>)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">    info, err := os.Stat(filename)</span><br><span class="line">    <span class="keyword">return</span> err == <span class="literal">nil</span> &amp;&amp; !info.IsDir()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    logger.Setup(&amp;logger.Settings&#123;</span><br><span class="line">        Path:       <span class="string">&quot;logs&quot;</span>,</span><br><span class="line">        Name:       <span class="string">&quot;godis&quot;</span>,</span><br><span class="line">        Ext:        <span class="string">&quot;log&quot;</span>,</span><br><span class="line">        TimeFormat: <span class="string">&quot;2006-01-02&quot;</span>,</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> fileExists(configFile) &#123;</span><br><span class="line">        config.SetupConfig(configFile)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        config.Properties = defaultProperties</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    err := tcp.ListenAndServeWithSignal(</span><br><span class="line">        &amp;tcp.Config&#123;</span><br><span class="line">            Address: fmt.Sprintf(<span class="string">&quot;%s:%d&quot;</span>,</span><br><span class="line">                config.Properties.Bind,</span><br><span class="line">                config.Properties.Port),</span><br><span class="line">        &#125;,</span><br><span class="line">        EchoHandler.MakeHandler())</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        logger.Error(err)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="echoHandler示例"><a href="#echoHandler示例" class="headerlink" title="echoHandler示例"></a>echoHandler示例</h4><p>新建文件<code>tcp/echo.go</code>，定义结构体<code>EchoHandler</code>与<code>EchoClient</code>：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// EchoHandler echos received line to client, using for test</span></span><br><span class="line"><span class="keyword">type</span> EchoHandler <span class="keyword">struct</span> &#123;</span><br><span class="line">    activeConn sync.Map</span><br><span class="line">    closing    atomic.Boolean</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MakeHandler creates EchoHandler</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeHandler</span><span class="params">()</span></span> *EchoHandler &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;EchoHandler&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// EchoClient is client for EchoHandler, using for test</span></span><br><span class="line"><span class="keyword">type</span> EchoClient <span class="keyword">struct</span> &#123;</span><br><span class="line">    Conn    net.Conn</span><br><span class="line">    Waiting wait.Wait</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Close close connection</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *EchoClient)</span></span> Close() <span class="type">error</span> &#123;</span><br><span class="line">    c.Waiting.WaitWithTimeout(<span class="number">10</span> * time.Second)</span><br><span class="line">    c.Conn.Close()</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>EchoHandler</code>实现了接口<code>Handler</code>，主要是将接收到的数据原样返回，详情如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Handle echos received line to client</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *EchoHandler)</span></span> Handle(ctx context.Context, conn net.Conn) &#123;</span><br><span class="line">    ...</span><br><span class="line">    reader := bufio.NewReader(conn)</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="comment">// may occurs: client EOF, client timeout, server early close</span></span><br><span class="line">        msg, err := reader.ReadString(<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">        ....</span><br><span class="line">        b := []<span class="type">byte</span>(msg)</span><br><span class="line">        _, _ = conn.Write(b)</span><br><span class="line">        ....</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Close stops echo handler</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *EchoHandler)</span></span> Close() <span class="type">error</span> &#123;</span><br><span class="line">    h.closing.Set(<span class="literal">true</span>)</span><br><span class="line">    h.activeConn.Range(<span class="function"><span class="keyword">func</span><span class="params">(key <span class="keyword">interface</span>&#123;&#125;, val <span class="keyword">interface</span>&#123;&#125;)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">        client := key.(*EchoClient)</span><br><span class="line">        _ = client.Close()</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="实现Redis协议解析器"><a href="#实现Redis协议解析器" class="headerlink" title="实现Redis协议解析器"></a>实现Redis协议解析器</h2><p>本章节主要新增了redis相关命令的解析，具体执行，以及响应处理等，相关目录结构如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">├─config</span><br><span class="line">│  config.go</span><br><span class="line">│</span><br><span class="line">├─database</span><br><span class="line">│  echo_database.go</span><br><span class="line">│</span><br><span class="line">├─interface</span><br><span class="line">│  ├─database</span><br><span class="line">│  │  database.go</span><br><span class="line">│  │</span><br><span class="line">│  ├─resp</span><br><span class="line">│  │  conn.go</span><br><span class="line">│  │  reply.go</span><br><span class="line">│  │</span><br><span class="line">│  └─tcp</span><br><span class="line">│     handler.go</span><br><span class="line">│</span><br><span class="line">├─lib</span><br><span class="line">│</span><br><span class="line">├─resp</span><br><span class="line">│  ├─connection</span><br><span class="line">│  │  conn.go</span><br><span class="line">│  │</span><br><span class="line">│  ├─handler</span><br><span class="line">│  │  handler.go</span><br><span class="line">│  │</span><br><span class="line">│  ├─parser</span><br><span class="line">│  │      parser.go</span><br><span class="line">│  │</span><br><span class="line">│  └─reply</span><br><span class="line">│     consts.go</span><br><span class="line">│     errors.go</span><br><span class="line">│     reply.go</span><br><span class="line">│</span><br><span class="line">└─tcp</span><br><span class="line">│   echo.go</span><br><span class="line">│   server.go</span><br><span class="line">│ </span><br><span class="line">| go.mod</span><br><span class="line">| main.go</span><br><span class="line">| redis.conf</span><br></pre></td></tr></table></figure>
+<h3 id="redis网络协议认识"><a href="#redis网络协议认识" class="headerlink" title="redis网络协议认识"></a>redis网络协议认识</h3></li>
+<li><p>正常回复：以”+”开头，以”\r\n”结尾的字符串形式</p>
+</li>
+<li><p>错误回复：以”-“开头，以”\r\n”结尾的字符串形式</p>
+</li>
+<li><p>整数：以”:”开头，以”\r\n”结尾的字符串形式</p>
+</li>
+<li><p>多行字符串：以”$”开头，后面跟实际发送的字节数，以”\r\n”结尾</p>
+</li>
+<li><p>数组：以”*”开头，后面跟成员个数</p>
+<h3 id="接口定义及实现"><a href="#接口定义及实现" class="headerlink" title="接口定义及实现"></a>接口定义及实现</h3><h4 id="Connection"><a href="#Connection" class="headerlink" title="Connection"></a>Connection</h4><p>在<code>interface/resp/conn.go</code>中定义连接，主要包含三个方法，写数据、获取当前所在数据库的索引，以及选择数据库：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Connection represents a connection with redis client</span></span><br><span class="line"><span class="keyword">type</span> Connection <span class="keyword">interface</span> &#123;</span><br><span class="line">    Write([]<span class="type">byte</span>) <span class="type">error</span></span><br><span class="line">    GetDBIndex() <span class="type">int</span> <span class="comment">// used for multi database</span></span><br><span class="line">    SelectDB(<span class="type">int</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>resp/connection/conn.go</code>中创建Connection结构体并实现Connection接口</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Connection represents a connection with a redis-cli</span></span><br><span class="line"><span class="keyword">type</span> Connection <span class="keyword">struct</span> &#123;</span><br><span class="line">    conn         net.Conn</span><br><span class="line">    waitingReply wait.Wait  <span class="comment">// waiting until reply finished</span></span><br><span class="line">    mu           sync.Mutex <span class="comment">// lock while handler sending response</span></span><br><span class="line">    selectedDB   <span class="type">int</span>        <span class="comment">// selected db</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewConn</span><span class="params">(conn net.Conn)</span></span> *Connection &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;Connection&#123;conn: conn,&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// RemoteAddr returns the remote network address</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Connection)</span></span> RemoteAddr() net.Addr &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Close disconnect with the client</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Connection)</span></span> Close() <span class="type">error</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Write sends response to client over tcp connection</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Connection)</span></span> Write(b []<span class="type">byte</span>) <span class="type">error</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// GetDBIndex returns selected db</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Connection)</span></span> GetDBIndex() <span class="type">int</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// SelectDB selects a database</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Connection)</span></span> SelectDB(dbNum <span class="type">int</span>) &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Reply"><a href="#Reply" class="headerlink" title="Reply"></a>Reply</h4><p>在<code>interface/resp/reply.go</code>中定义接口Reply，用于处理基于resp协议的响应，主要包含<code>ToBytes</code>方法：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Reply is the interface of redis serialization protocol message</span></span><br><span class="line"><span class="keyword">type</span> Reply <span class="keyword">interface</span> &#123;</span><br><span class="line">    ToBytes() []<span class="type">byte</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ErrorReply is an error and redis.Reply</span></span><br><span class="line"><span class="keyword">type</span> ErrorReply <span class="keyword">interface</span> &#123;</span><br><span class="line">    Error() <span class="type">string</span></span><br><span class="line">    ToBytes() []<span class="type">byte</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>resp/reply</code>下创建以下三个文件，分别用于实现具体的相关处理：</p>
+</li>
+<li><p><code>consts.go</code>：定义一些固定不变的响应</p>
+</li>
+<li><p><code>reply.go</code>：定义正常执行命令时的响应</p>
+</li>
+<li><p><code>errors.go</code>：定义发生错误时的响应</p>
+</li>
+</ul>
+<p><code>consts.go</code>中的文件内容如下，其中的结构体都需要实现Reply接口：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PongReply is +PONG</span></span><br><span class="line"><span class="keyword">type</span> PongReply <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// OkReply is +OK</span></span><br><span class="line"><span class="keyword">type</span> OkReply <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NullBulkReply is empty string</span></span><br><span class="line"><span class="keyword">type</span> NullBulkReply <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// EmptyMultiBulkReply is a empty list</span></span><br><span class="line"><span class="keyword">type</span> EmptyMultiBulkReply <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NoReply respond nothing, for commands like subscribe</span></span><br><span class="line"><span class="keyword">type</span> NoReply <span class="keyword">struct</span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p><code>reply.go</code>中的文件内容如下，其中的结构体都需要实现Reply接口：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// BulkReply stores a binary-safe string</span></span><br><span class="line"><span class="keyword">type</span> BulkReply <span class="keyword">struct</span> &#123;</span><br><span class="line">    Arg []<span class="type">byte</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MultiBulkReply stores a list of string</span></span><br><span class="line"><span class="keyword">type</span> MultiBulkReply <span class="keyword">struct</span> &#123;</span><br><span class="line">    Args [][]<span class="type">byte</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// StatusReply stores a simple status string</span></span><br><span class="line"><span class="keyword">type</span> StatusReply <span class="keyword">struct</span> &#123;</span><br><span class="line">    Status <span class="type">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// IntReply stores an int64 number</span></span><br><span class="line"><span class="keyword">type</span> IntReply <span class="keyword">struct</span> &#123;</span><br><span class="line">    Code <span class="type">int64</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// StandardErrReply represents handler error</span></span><br><span class="line"><span class="keyword">type</span> StandardErrReply <span class="keyword">struct</span> &#123;</span><br><span class="line">    Status <span class="type">string</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>errors.go</code>中的文件内容如下，其中的结构体都需要实现Reply接口：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// UnknownErrReply represents UnknownErr</span></span><br><span class="line"><span class="keyword">type</span> UnknownErrReply <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ArgNumErrReply represents wrong number of arguments for command</span></span><br><span class="line"><span class="keyword">type</span> ArgNumErrReply <span class="keyword">struct</span> &#123;</span><br><span class="line">    Cmd <span class="type">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// SyntaxErrReply represents meeting unexpected arguments</span></span><br><span class="line"><span class="keyword">type</span> SyntaxErrReply <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// WrongTypeErrReply represents operation against a key holding the wrong kind of value</span></span><br><span class="line"><span class="keyword">type</span> WrongTypeErrReply <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ProtocolErrReply represents meeting unexpected byte during parse requests</span></span><br><span class="line"><span class="keyword">type</span> ProtocolErrReply <span class="keyword">struct</span> &#123;</span><br><span class="line">    Msg <span class="type">string</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Database"><a href="#Database" class="headerlink" title="Database"></a>Database</h4><p>在<code>interface/database/database.go</code>定义接口Database，规范不同的数据库实现：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Database is the interface for redis style storage engine</span></span><br><span class="line"><span class="keyword">type</span> Database <span class="keyword">interface</span> &#123;</span><br><span class="line">    Exec(client resp.Connection, args [][]<span class="type">byte</span>) resp.Reply</span><br><span class="line">    AfterClientClose(c resp.Connection)</span><br><span class="line">    Close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="命令解析实现"><a href="#命令解析实现" class="headerlink" title="命令解析实现"></a>命令解析实现</h3><p>在文件<code>resp/parser/parser.go</code>实现下面的功能：</p>
+<h4 id="响应流式处理"><a href="#响应流式处理" class="headerlink" title="响应流式处理"></a>响应流式处理</h4><ul>
+<li><p><code>Payload</code>：包含正常响应或错误</p>
+</li>
+<li><p><code>readState</code>：解析器状态</p>
+</li>
+<li><p><code>ParseStream</code>：返回数据类型为<code>Payload</code>的channel</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Payload stores redis.Reply or error</span></span><br><span class="line"><span class="keyword">type</span> Payload <span class="keyword">struct</span> &#123;</span><br><span class="line">    Data resp.Reply</span><br><span class="line">    Err  <span class="type">error</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> readState <span class="keyword">struct</span> &#123;</span><br><span class="line">    readingMultiLine  <span class="type">bool</span></span><br><span class="line">    expectedArgsCount <span class="type">int</span></span><br><span class="line">    msgType           <span class="type">byte</span></span><br><span class="line">    args              [][]<span class="type">byte</span></span><br><span class="line">    bulkLen           <span class="type">int64</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *readState)</span></span> finished() <span class="type">bool</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> s.expectedArgsCount &gt; <span class="number">0</span> &amp;&amp; <span class="built_in">len</span>(s.args) == s.expectedArgsCount</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ParseStream reads data from io.Reader and send payloads through channel</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ParseStream</span><span class="params">(reader io.Reader)</span></span> &lt;-<span class="keyword">chan</span> *Payload &#123;</span><br><span class="line">    ch := <span class="built_in">make</span>(<span class="keyword">chan</span> *Payload)</span><br><span class="line">    <span class="keyword">go</span> parse0(reader, ch)</span><br><span class="line">    <span class="keyword">return</span> ch</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="命令读取及具体解析"><a href="#命令读取及具体解析" class="headerlink" title="命令读取及具体解析"></a>命令读取及具体解析</h4></li>
+<li><p><code>readLine</code>：精确读取一行数据</p>
+</li>
+<li><p><code>parseMultiBulkHeader</code>：处理多行数据(“*”号开始)，改变解析器状态</p>
+</li>
+<li><p><code>parseBulkHeader</code>：处理单个数据(“$”号开始)，改变解析器状态</p>
+</li>
+<li><p><code>parseSingleLineReply</code>：处理客户端发送+ok -err  :5的情况</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">readLine</span><span class="params">(bufReader *bufio.Reader, state *readState)</span></span> ([]<span class="type">byte</span>, <span class="type">bool</span>, <span class="type">error</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">parseMultiBulkHeader</span><span class="params">(msg []<span class="type">byte</span>, state *readState)</span></span> <span class="type">error</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">parseBulkHeader</span><span class="params">(msg []<span class="type">byte</span>, state *readState)</span></span> <span class="type">error</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">parseSingleLineReply</span><span class="params">(msg []<span class="type">byte</span>)</span></span> (resp.Reply, <span class="type">error</span>) &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="解析实现"><a href="#解析实现" class="headerlink" title="解析实现"></a>解析实现</h4></li>
+<li><p><code>readBody</code>：去除其他字符，解析命令内容</p>
+</li>
+<li><p><code>parse0</code>：根据读取到的数据调用不同的解析方法，并将结果返回Payload的channel</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// read the non-first lines of multi bulk reply or bulk reply</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">readBody</span><span class="params">(msg []<span class="type">byte</span>, state *readState)</span></span> <span class="type">error</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">parse0</span><span class="params">(reader io.Reader, ch <span class="keyword">chan</span>&lt;- *Payload)</span></span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="实现RespHandler"><a href="#实现RespHandler" class="headerlink" title="实现RespHandler"></a>实现RespHandler</h3><p>在TCP层面处理用户发过来的数据，并调用resp协议解析器进行解析，然后根据对应的db去实际执行相关的命令，主要在Handle方法中实现。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RespHandler implements tcp.Handler and serves as a redis handler</span></span><br><span class="line"><span class="keyword">type</span> RespHandler <span class="keyword">struct</span> &#123;</span><br><span class="line">    activeConn sync.Map <span class="comment">// *client -&gt; placeholder</span></span><br><span class="line">    db         databaseface.Database</span><br><span class="line">    closing    atomic.Boolean <span class="comment">// refusing new client and new request</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MakeHandler creates a RespHandler instance</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeHandler</span><span class="params">()</span></span> *RespHandler &#123;</span><br><span class="line">    <span class="keyword">var</span> db databaseface.Database</span><br><span class="line">    db = database.NewEchoDatabase()</span><br><span class="line">    <span class="keyword">return</span> &amp;RespHandler&#123;</span><br><span class="line">        db: db,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *RespHandler)</span></span> closeClient(client *connection.Connection) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Handle receives and executes redis commands</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *RespHandler)</span></span> Handle(ctx context.Context, conn net.Conn) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Close stops handler</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *RespHandler)</span></span> Close() <span class="type">error</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="EchoDatabase示例"><a href="#EchoDatabase示例" class="headerlink" title="EchoDatabase示例"></a>EchoDatabase示例</h3><p>在<code>database/echo_database.go</code>中简单实现一个数据库，其实现了Database接口。这里只是方便做简单测试，下一篇文章将记录如何实现redis的内存数据库：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> EchoDatabase <span class="keyword">struct</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewEchoDatabase</span><span class="params">()</span></span> *EchoDatabase &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;EchoDatabase&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(e EchoDatabase)</span></span> Exec(client resp.Connection, args [][]<span class="type">byte</span>) resp.Reply &#123;</span><br><span class="line">    <span class="keyword">return</span> reply.MakeMultiBulkReply(args)</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(e EchoDatabase)</span></span> AfterClientClose(c resp.Connection) &#123;</span><br><span class="line">    logger.Info(<span class="string">&quot;EchoDatabase AfterClientClose&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(e EchoDatabase)</span></span> Close() &#123;</span><br><span class="line">    logger.Info(<span class="string">&quot;EchoDatabase Close&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/" title="项目实战：go语言实现redis(一)" target="_blank" rel="external">https://zcej.github.io/2022/05/08/go/项目实战：go语言实现redis(一)/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/" title="项目实战：go语言实现redis(二)"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2022/03/18/go/go%E5%AE%9E%E7%8E%B0%E5%A4%A7%E6%A0%B9%E5%A0%86%E3%80%81%E5%B0%8F%E6%A0%B9%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/" title="go语言实现大根堆、小根堆及堆排序"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

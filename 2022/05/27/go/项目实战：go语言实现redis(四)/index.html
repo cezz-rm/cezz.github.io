@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>项目实战：go语言实现redis(四) | My Blog</title>
+  <meta name="description" content="背景本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考github上的相关代码。主体上有下面几个部分：  TCP服务器(一)：支持同时监听多个TCP连接，并进行相关处理 Redis协议解析器(一)：实现相关Handler，命令解析及响应处理 内存数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="项目实战：go语言实现redis(四)">
+<meta property="og:url" content="https://zcej.github.io/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考github上的相关代码。主体上有下面几个部分：  TCP服务器(一)：支持同时监听多个TCP连接，并进行相关处理 Redis协议解析器(一)：实现相关Handler，命令解析及响应处理 内存数据">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-27T12:51:46.000Z">
+<meta property="article:modified_time" content="2022-06-28T15:48:16.023Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/" class="title">项目实战：go语言实现redis(四)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-27T12:51:46.000Z" itemprop="datePublished">2022-05-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/" class="title">项目实战：go语言实现redis(三)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-21T02:14:09.000Z" itemprop="datePublished">2022-05-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/" class="title">项目实战：go语言实现redis(二)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-12T15:06:31.000Z" itemprop="datePublished">2022-05-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/" class="title">项目实战：go语言实现redis(一)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-08T14:41:18.000Z" itemprop="datePublished">2022-05-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/03/18/go/go%E5%AE%9E%E7%8E%B0%E5%A4%A7%E6%A0%B9%E5%A0%86%E3%80%81%E5%B0%8F%E6%A0%B9%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/" class="title">go语言实现大根堆、小根堆及堆排序</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-03-18T13:07:38.000Z" itemprop="datePublished">2022-03-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-go/项目实战：go语言实现redis(四)" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      项目实战：go语言实现redis(四)
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/" class="article-date">
+	  <time datetime="2022-05-27T12:51:46.000Z" itemprop="datePublished">2022-05-27</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/go/">go</a>►<a class="article-category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>本系列文章记录如何基于go语言实现Redis，从整体设计到具体细节实现，不仅可以有效的锻炼自己的编码能力，又能加深对redis的认识。文章主要从整体设计思路入手，记录关键的设计步骤，详细的实现可以参考<a target="_blank" rel="noopener" href="https://github.com/zcej/go-redis">github</a>上的相关代码。主体上有下面几个部分：</p>
+<ul>
+<li>TCP服务器(一)：支持同时监听多个TCP连接，并进行相关处理</li>
+<li>Redis协议解析器(一)：实现相关Handler，命令解析及响应处理</li>
+<li>内存数据库(二)：实现数据库，注册相关命令，完成支持对数据库的增删改查</li>
+<li>Redis持久化(三)：实现redis中的持久化功能aof</li>
+<li>**Redis集群(四)**：本文将通过一致性哈希的方式实现cluster集群</li>
+</ul>
+<p>本章的项目目录结构如下，在前一篇的基础上新增了cluster相关文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">├─aof</span><br><span class="line">│</span><br><span class="line">├─cluster</span><br><span class="line">│  client_pool.go</span><br><span class="line">│  cluster_database.go</span><br><span class="line">│  com.go</span><br><span class="line">│  del.go</span><br><span class="line">│  keys.go</span><br><span class="line">│  ping.go</span><br><span class="line">│  rename.go</span><br><span class="line">│  router.go</span><br><span class="line">│</span><br><span class="line">├─config</span><br><span class="line">│</span><br><span class="line">├─database</span><br><span class="line">│</span><br><span class="line">├─datastruct</span><br><span class="line">│  └─dict</span><br><span class="line">│</span><br><span class="line">├─interface</span><br><span class="line">│  ├─database</span><br><span class="line">│  │</span><br><span class="line">│  ├─dict</span><br><span class="line">│  │</span><br><span class="line">│  ├─resp</span><br><span class="line">│  │</span><br><span class="line">│  └─tcp</span><br><span class="line">│</span><br><span class="line">├─lib</span><br><span class="line">│</span><br><span class="line">├─resp</span><br><span class="line">│  ├─connection</span><br><span class="line">│  │</span><br><span class="line">│  ├─handler</span><br><span class="line">│  │</span><br><span class="line">│  ├─parser</span><br><span class="line">│  │</span><br><span class="line">│  └─reply</span><br><span class="line">│</span><br><span class="line">├─tcp</span><br><span class="line">│</span><br><span class="line">│ go.mod</span><br><span class="line">│ main.go</span><br><span class="line">│ redis.conf</span><br></pre></td></tr></table></figure>
+<h2 id="实现一致性hash"><a href="#实现一致性hash" class="headerlink" title="实现一致性hash"></a>实现一致性hash</h2><p>结构体定义<br />在文件<code>lib/comsistenthash/comsistenthash.go</code>中定义结构体<code>NodeMap</code>，包含下面几个属性，并进行初始化，此处设置了一个默认的哈希函数<code>crc32.ChecksumIEEE</code>。</p>
+<ul>
+<li><p><code>hashFunc</code>：类型为func，需要指定一个hash函数</p>
+</li>
+<li><p><code>nodeHashs</code>：类型为int类型的切片，存储节点哈希后的值，且该切片有序的</p>
+</li>
+<li><p><code>nodehashMap</code>：类型为map，key为哈希值，value是节点的地址</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HashFunc defines function to generate hash code</span></span><br><span class="line"><span class="keyword">type</span> HashFunc <span class="function"><span class="keyword">func</span><span class="params">(data []<span class="type">byte</span>)</span></span> <span class="type">uint32</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// NodeMap stores nodes and you can pick node from NodeMap</span></span><br><span class="line"><span class="keyword">type</span> NodeMap <span class="keyword">struct</span> &#123;</span><br><span class="line">    hashFunc    HashFunc</span><br><span class="line">    nodeHashs   []<span class="type">int</span> <span class="comment">// sorted</span></span><br><span class="line">    nodehashMap <span class="keyword">map</span>[<span class="type">int</span>]<span class="type">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewNodeMap creates a new NodeMap</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewNodeMap</span><span class="params">(fn HashFunc)</span></span> *NodeMap &#123;</span><br><span class="line">    m := &amp;NodeMap&#123;</span><br><span class="line">        hashFunc:    fn,</span><br><span class="line">        nodehashMap: <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">int</span>]<span class="type">string</span>),</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> m.hashFunc == <span class="literal">nil</span> &#123;</span><br><span class="line">        m.hashFunc = crc32.ChecksumIEEE</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> m</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>方法实现<br />需要实现添加节点到哈希环中和从哈希环取出节点的方法：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// IsEmpty returns if there is no node in NodeMap</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *NodeMap)</span></span> IsEmpty() <span class="type">bool</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// AddNode add the given nodes into consistent hash circle</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *NodeMap)</span></span> AddNode(keys ...<span class="type">string</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// PickNode gets the closest item in the hash to the provided key.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *NodeMap)</span></span> PickNode(key <span class="type">string</span>) <span class="type">string</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="集群核心架构"><a href="#集群核心架构" class="headerlink" title="集群核心架构"></a>集群核心架构</h2><h3 id="连接池"><a href="#连接池" class="headerlink" title="连接池"></a>连接池</h3><p>为了支持高并发的连接及能够对连接进行复用，此处引进了一个第三方连接池，通过命令<code>go get &quot;github.com/jolestar/go-commons-pool/v2&quot;</code>进行下载。另外，在<code>cluster/client_pool.go</code>中定义结构体<code>connectionFactory</code>实现其接口<code>PooledObjectFactory</code>。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> connectionFactory <span class="keyword">struct</span> &#123;</span><br><span class="line">    Peer <span class="type">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *connectionFactory)</span></span> MakeObject(ctx context.Context) (*pool.PooledObject, <span class="type">error</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *connectionFactory)</span></span> DestroyObject(ctx context.Context, object *pool.PooledObject) <span class="type">error</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *connectionFactory)</span></span> ValidateObject(ctx context.Context, object *pool.PooledObject) <span class="type">bool</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *connectionFactory)</span></span> ActivateObject(ctx context.Context, object *pool.PooledObject) <span class="type">error</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *connectionFactory)</span></span> PassivateObject(ctx context.Context, object *pool.PooledObject) <span class="type">error</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="实现ClusterDatabase"><a href="#实现ClusterDatabase" class="headerlink" title="实现ClusterDatabase"></a>实现ClusterDatabase</h3><p>需要对原来单体的Database进行进一步封装，新建文件<code>cluster/cluster_database.go</code>。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ClusterDatabase represents a node of godis cluster</span></span><br><span class="line"><span class="comment">// it holds part of data and coordinates other nodes to finish transactions</span></span><br><span class="line"><span class="keyword">type</span> ClusterDatabase <span class="keyword">struct</span> &#123;</span><br><span class="line">    self           <span class="type">string</span></span><br><span class="line"></span><br><span class="line">    nodes          []<span class="type">string</span></span><br><span class="line">    peerPicker     *consistenthash.NodeMap</span><br><span class="line">    peerConnection <span class="keyword">map</span>[<span class="type">string</span>]*pool.ObjectPool</span><br><span class="line">    db             databaseface.Database</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MakeClusterDatabase creates and starts a node of cluster</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeClusterDatabase</span><span class="params">()</span></span> *ClusterDatabase &#123;</span><br><span class="line">    cluster := &amp;ClusterDatabase&#123;</span><br><span class="line">        self: config.Properties.Self,</span><br><span class="line"></span><br><span class="line">        db:             database.NewStandaloneDatabase(),</span><br><span class="line">        peerPicker:     consistenthash.NewNodeMap(<span class="literal">nil</span>),</span><br><span class="line">        peerConnection: <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]*pool.ObjectPool),</span><br><span class="line">    &#125;</span><br><span class="line">    nodes := <span class="built_in">make</span>([]<span class="type">string</span>, <span class="number">0</span>, <span class="built_in">len</span>(config.Properties.Peers)+<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">for</span> _, peer := <span class="keyword">range</span> config.Properties.Peers &#123;</span><br><span class="line">        nodes = <span class="built_in">append</span>(nodes, peer)</span><br><span class="line">    &#125;</span><br><span class="line">    nodes = <span class="built_in">append</span>(nodes, config.Properties.Self)</span><br><span class="line">    cluster.peerPicker.AddNode(nodes...)</span><br><span class="line">    ctx := context.Background()</span><br><span class="line">    <span class="keyword">for</span> _, peer := <span class="keyword">range</span> config.Properties.Peers &#123;</span><br><span class="line">        cluster.peerConnection[peer] = pool.NewObjectPoolWithDefaultConfig(ctx, &amp;connectionFactory&#123;</span><br><span class="line">            Peer: peer,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    cluster.nodes = nodes</span><br><span class="line">    <span class="keyword">return</span> cluster</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>另外还需实现以下几个方法。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Close stops current node of cluster</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cluster *ClusterDatabase)</span></span> Close() &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Exec executes command on cluster</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cluster *ClusterDatabase)</span></span> Exec(c resp.Connection, cmdLine [][]<span class="type">byte</span>) (result resp.Reply) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// AfterClientClose does some clean after client close connection</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cluster *ClusterDatabase)</span></span> AfterClientClose(c resp.Connection) &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="操作连接池"><a href="#操作连接池" class="headerlink" title="操作连接池"></a>操作连接池</h3><p><code>cluster/com.go</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cluster *ClusterDatabase)</span></span> getPeerClient(peer <span class="type">string</span>) (*client.Client, <span class="type">error</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cluster *ClusterDatabase)</span></span> returnPeerClient(peer <span class="type">string</span>, peerClient *client.Client) <span class="type">error</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// relay relays command to peer</span></span><br><span class="line"><span class="comment">// select db by c.GetDBIndex()</span></span><br><span class="line"><span class="comment">// cannot call Prepare, Commit, execRollback of self node</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cluster *ClusterDatabase)</span></span> relay(peer <span class="type">string</span>, c resp.Connection, args [][]<span class="type">byte</span>) resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// broadcast broadcasts command to all node in cluster</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cluster *ClusterDatabase)</span></span> broadcast(c resp.Connection, args [][]<span class="type">byte</span>) <span class="keyword">map</span>[<span class="type">string</span>]resp.Reply &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="指令路由"><a href="#指令路由" class="headerlink" title="指令路由"></a>指令路由</h3><p>需要根据不同的指令，操作对应的节点，这里需要有一个全局的方式，找到执行指令的相关函数，新建文件<code>cluster/router.go</code>。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeRouter</span><span class="params">()</span></span> <span class="keyword">map</span>[<span class="type">string</span>]CmdFunc &#123;</span><br><span class="line">    routerMap := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]CmdFunc)</span><br><span class="line">    routerMap[<span class="string">&quot;ping&quot;</span>] = ping</span><br><span class="line"></span><br><span class="line">    routerMap[<span class="string">&quot;del&quot;</span>] = Del</span><br><span class="line"></span><br><span class="line">    routerMap[<span class="string">&quot;exists&quot;</span>] = defaultFunc</span><br><span class="line">    routerMap[<span class="string">&quot;type&quot;</span>] = defaultFunc</span><br><span class="line">    routerMap[<span class="string">&quot;rename&quot;</span>] = Rename</span><br><span class="line">    routerMap[<span class="string">&quot;renamenx&quot;</span>] = Rename</span><br><span class="line"></span><br><span class="line">    routerMap[<span class="string">&quot;set&quot;</span>] = defaultFunc</span><br><span class="line">    routerMap[<span class="string">&quot;setnx&quot;</span>] = defaultFunc</span><br><span class="line">    routerMap[<span class="string">&quot;get&quot;</span>] = defaultFunc</span><br><span class="line">    routerMap[<span class="string">&quot;getset&quot;</span>] = defaultFunc</span><br><span class="line"></span><br><span class="line">    routerMap[<span class="string">&quot;flushdb&quot;</span>] = FlushDB</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> routerMap</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// relay command to responsible peer, and return its reply to client</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">defaultFunc</span><span class="params">(cluster *ClusterDatabase, c resp.Connection, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;</span><br><span class="line">    key := <span class="type">string</span>(args[<span class="number">1</span>])</span><br><span class="line">    peer := cluster.peerPicker.PickNode(key)</span><br><span class="line">    <span class="keyword">return</span> cluster.relay(peer, c, args)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改特殊的指令操作，分别在下述文件中添加对应的函数。</p>
+</li>
+<li><p><code>cluster/ping.go</code>：直接执行即可</p>
+</li>
+<li><p><code>cluster/del.go</code>：需要广播至集群的所有节点</p>
+</li>
+<li><p><code>cluster/rename.go</code>：需要找到键所在的节点执行，并处理重命名后更换节点的情况</p>
+</li>
+<li><p><code>cluster/keys.go</code>：需要广播至集群的所有节点</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ping</span><span class="params">(cluster *ClusterDatabase, c resp.Connection, cmdAndArgs [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Del atomically removes given writeKeys from cluster, writeKeys can be distributed on any node</span></span><br><span class="line"><span class="comment">// if the given writeKeys are distributed on different node, Del will use try-commit-catch to remove them</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Del</span><span class="params">(cluster *ClusterDatabase, c resp.Connection, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Rename renames a key, the origin and the destination must within the same node</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Rename</span><span class="params">(cluster *ClusterDatabase, c resp.Connection, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// FlushDB removes all data in current database</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">FlushDB</span><span class="params">(cluster *ClusterDatabase, c resp.Connection, args [][]<span class="type">byte</span>)</span></span> resp.Reply &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="启用集群模式"><a href="#启用集群模式" class="headerlink" title="启用集群模式"></a>启用集群模式</h2><p>要使用集群需要修改<code>resp/handler/handler.go</code>中初始化Database的逻辑。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MakeHandler creates a RespHandler instance</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeHandler</span><span class="params">()</span></span> *RespHandler &#123;</span><br><span class="line">    <span class="keyword">var</span> db databaseface.Database</span><br><span class="line">    <span class="keyword">if</span> config.Properties.Self != <span class="string">&quot;&quot;</span> &amp;&amp;</span><br><span class="line">        <span class="built_in">len</span>(config.Properties.Peers) &gt; <span class="number">0</span> &#123;</span><br><span class="line">        db = cluster.MakeClusterDatabase()</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        db = database.NewStandaloneDatabase()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &amp;RespHandler&#123;</span><br><span class="line">        db: db,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>至此，基于go语言实现redis的项目已基本完成了。项目中有许多值得学习的地方，例如整个架构的设计，整体功能的切分及具体实现。每一步的过程都需要有自己的思考，而不是按部就班，随便记录以下就完了，记录下这个系列的文章，也是为了以后的回顾，温故而知新才能不断的加深影响提高自己。不过项目也依然有很多需要优化的地方，这个可以参考开源的项目<a target="_blank" rel="noopener" href="https://github.com/HDT3213/godis">godis</a>。</p>
+</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/" title="项目实战：go语言实现redis(四)" target="_blank" rel="external">https://zcej.github.io/2022/05/27/go/项目实战：go语言实现redis(四)/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/" title="项目实战：go语言实现redis(三)"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
