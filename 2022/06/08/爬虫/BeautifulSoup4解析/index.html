@@ -26,7 +26,7 @@
 <meta property="og:description" content="安装安装BeautifulSoup可通过系统的包管理工具安装： 1apt-get install Python-bs4 或者通过python的包管理工具pip进行安装： 1pip install beautifulsoup4 -i http:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;pypi&#x2F;simple&#x2F; 安装解析器python内置了HTML解析器，若要使用第三方的解析器，如lxml，则需根据操">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-08T13:03:11.000Z">
-<meta property="article:modified_time" content="2022-07-03T13:03:05.080Z">
+<meta property="article:modified_time" content="2022-07-03T13:18:10.759Z">
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
@@ -382,24 +382,28 @@
 <tbody><tr>
 <td>python标准库</td>
 <td>BeautifulSoup(html, ‘html.parser’)</td>
-<td></td>
-<td></td>
+<td>python的内置标准库<br>执行速度适中<br>文档容错能力强</td>
+<td>Python2.7.3或3.2.2前的版本中文容错能力差</td>
+</tr>
+<tr>
+<td>lxml HTML解析器</td>
+<td>BeautifulSoup(html, ‘lxml’)</td>
+<td>速度快<br>文档容错能力强</td>
+<td>需要安装c语言库</td>
+</tr>
+<tr>
+<td>lxml XML解析器</td>
+<td>BeautifulSoup(html, [‘lxml’, ‘xml’])</td>
+<td>速度快<br>唯一支持XML的解析器</td>
+<td>需要安装c语言库</td>
+</tr>
+<tr>
+<td>html5lib</td>
+<td>BeautifulSoup(html, ‘html5lib’)</td>
+<td>最好的容错性<br>以浏览器的方式解析文档<br>生成HTML5格式的文档</td>
+<td>速度慢<br>不依赖外部扩展</td>
 </tr>
 </tbody></table>
-<ul>
-<li>python的内置标准库</li>
-<li>执行速度适中</li>
-<li>文档容错能力强<br> | Python2.7.3或3.2.2前的版本中文容错能力差<br> |<br>| lxml HTML解析器 | BeautifulSoup(html, ‘lxml’) | </li>
-<li>速度快</li>
-<li>文档容错能力强<br> | 需要安装c语言库 |<br>| lxml XML解析器 | BeautifulSoup(html, [‘lxml’, ‘xml’]) | </li>
-<li>速度快</li>
-<li>唯一支持XML的解析器<br> | 需要安装c语言库 |<br>| html5lib | BeautifulSoup(html, ‘html5lib’) | </li>
-<li>最好的容错性</li>
-<li>以浏览器的方式解析文档</li>
-<li>生成HTML5格式的文档<br> | </li>
-<li>速度慢</li>
-<li>不依赖外部扩展<br> |</li>
-</ul>
 <h2 id="使用技巧"><a href="#使用技巧" class="headerlink" title="使用技巧"></a>使用技巧</h2><p>假设有一个网页<code>html</code>，创建一个<code>BeautifulSoup</code>对象，并指定解析器。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</span><br><span class="line"></span><br><span class="line">soup = BeautifulSoup(html, <span class="string">&quot;lxml)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">soup.prettify() # 缩进打印</span></span><br><span class="line"><span class="string">soup.title # 获取title标签的内容</span></span><br><span class="line"><span class="string">soup.div # 获取第一个div标签的内容</span></span><br><span class="line"><span class="string">soup.find(id=&quot;</span>uq<span class="string">&quot;) # 获取id=&quot;</span>u1<span class="string">&quot;的标签</span></span><br><span class="line"><span class="string">soup.find_all(class_=&quot;</span>item<span class="string">&quot;) # 查找所有class属性有item的标签                     </span></span><br></pre></td></tr></table></figure>
 <blockquote>
