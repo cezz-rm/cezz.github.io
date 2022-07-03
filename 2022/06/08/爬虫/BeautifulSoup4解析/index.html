@@ -26,7 +26,7 @@
 <meta property="og:description" content="安装安装BeautifulSoup可通过系统的包管理工具安装： 1apt-get install Python-bs4 或者通过python的包管理工具pip进行安装： 1pip install beautifulsoup4 -i http:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;pypi&#x2F;simple&#x2F; 安装解析器python内置了HTML解析器，若要使用第三方的解析器，如lxml，则需根据操">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-08T13:03:11.000Z">
-<meta property="article:modified_time" content="2022-07-03T13:18:10.759Z">
+<meta property="article:modified_time" content="2022-07-03T13:25:05.188Z">
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
@@ -325,6 +325,15 @@
 
   
   
+  <aside class="sidebar sidebar-toc collapse   in  " id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85"><span class="toc-number">1.</span> <span class="toc-text">安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85BeautifulSoup"><span class="toc-number">1.1.</span> <span class="toc-text">安装BeautifulSoup</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E8%A7%A3%E6%9E%90%E5%99%A8"><span class="toc-number">1.2.</span> <span class="toc-text">安装解析器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7"><span class="toc-number">2.</span> <span class="toc-text">使用技巧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1%E7%A7%8D%E7%B1%BB"><span class="toc-number">3.</span> <span class="toc-text">对象种类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Tag"><span class="toc-number">3.1.</span> <span class="toc-text">Tag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NavigableString"><span class="toc-number">3.2.</span> <span class="toc-text">NavigableString</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#BeautifulSoup"><span class="toc-number">3.3.</span> <span class="toc-text">BeautifulSoup</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Comment"><span class="toc-number">3.4.</span> <span class="toc-text">Comment</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%81%8D%E5%8E%86%E6%96%87%E6%A1%A3%E6%A0%91"><span class="toc-number">4.</span> <span class="toc-text">遍历文档树</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%90%E8%8A%82%E7%82%B9"><span class="toc-number">4.1.</span> <span class="toc-text">子节点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#contents%E5%92%8C-children"><span class="toc-number">4.1.1.</span> <span class="toc-text">.contents和.children</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#descendants"><span class="toc-number">4.1.2.</span> <span class="toc-text">.descendants</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#string"><span class="toc-number">4.1.3.</span> <span class="toc-text">.string</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#strings%E5%92%8C-stripped-strings"><span class="toc-number">4.1.4.</span> <span class="toc-text">.strings和.stripped_strings</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%88%B6%E8%8A%82%E7%82%B9"><span class="toc-number">4.2.</span> <span class="toc-text">父节点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#parent"><span class="toc-number">4.2.1.</span> <span class="toc-text">.parent</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#parents"><span class="toc-number">4.2.2.</span> <span class="toc-text">.parents</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%84%E5%BC%9F%E8%8A%82%E7%82%B9"><span class="toc-number">4.3.</span> <span class="toc-text">兄弟节点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#next-sibling%E5%92%8C-previous-sibling"><span class="toc-number">4.3.1.</span> <span class="toc-text">.next_sibling和.previous_sibling</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#next-siblings%E5%92%8C-previous-siblings"><span class="toc-number">4.3.2.</span> <span class="toc-text">.next_siblings和.previous_siblings</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%9C%E7%B4%A2%E6%96%87%E6%A1%A3%E6%A0%91"><span class="toc-number">5.</span> <span class="toc-text">搜索文档树</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#find-all"><span class="toc-number">5.1.</span> <span class="toc-text">find_all</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#name%E5%8F%82%E6%95%B0"><span class="toc-number">5.1.1.</span> <span class="toc-text">name参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#kwargs"><span class="toc-number">5.1.2.</span> <span class="toc-text">kwargs</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#attrs"><span class="toc-number">5.1.3.</span> <span class="toc-text">attrs</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#string-1"><span class="toc-number">5.1.4.</span> <span class="toc-text">string</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#limit"><span class="toc-number">5.1.5.</span> <span class="toc-text">limit</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#recursive"><span class="toc-number">5.1.6.</span> <span class="toc-text">recursive</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#find"><span class="toc-number">5.2.</span> <span class="toc-text">find</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CSS%E9%80%89%E6%8B%A9%E5%99%A8"><span class="toc-number">5.3.</span> <span class="toc-text">CSS选择器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E6%96%87%E6%A1%A3%E6%A0%91"><span class="toc-number">6.</span> <span class="toc-text">修改文档树</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-爬虫/BeautifulSoup4解析" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -569,6 +578,14 @@
       <a href="/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/" title="项目实战：go语言实现redis(四)"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn " data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="文章目录" role="button">    <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   
