@@ -265,6 +265,13 @@
 
   
   <url>
+    <loc>https://zcej.github.io/categories/python/</loc>
+    <lastmod>2022-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://zcej.github.io/categories/go/</loc>
     <lastmod>2022-07-03</lastmod>
     <changefreq>weekly</changefreq>
@@ -279,7 +286,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/python/</loc>
+    <loc>https://zcej.github.io/categories/python/%E7%88%AC%E8%99%AB/</loc>
     <lastmod>2022-07-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -287,13 +294,6 @@
   
   <url>
     <loc>https://zcej.github.io/categories/django/</loc>
-    <lastmod>2022-07-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://zcej.github.io/categories/python/%E7%88%AC%E8%99%AB/</loc>
     <lastmod>2022-07-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
