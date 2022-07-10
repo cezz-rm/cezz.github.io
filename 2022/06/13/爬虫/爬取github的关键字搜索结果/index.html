@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>爬取github的关键字搜索结果 | My Blog</title>
+  <meta name="description" content="背景功能：根据github搜索关键字得到的结果进行解析，提取需要的字段，整个过程均自动化。思路：  在页面上模拟操作，此过程中使用抓包工具Fiddler分析相关反爬策略 可先获取到结果页面，进行离线解析，暂不依赖网络环境，提供工作效率 补充完善抓取策略，比如并发，代理池。后续思考使用框架是不是效率更高 注：github官方有提供APIserarch-code，但是其不能在全部的公共库中搜索，故使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="爬取github的关键字搜索结果">
+<meta property="og:url" content="https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景功能：根据github搜索关键字得到的结果进行解析，提取需要的字段，整个过程均自动化。思路：  在页面上模拟操作，此过程中使用抓包工具Fiddler分析相关反爬策略 可先获取到结果页面，进行离线解析，暂不依赖网络环境，提供工作效率 补充完善抓取策略，比如并发，代理池。后续思考使用框架是不是效率更高 注：github官方有提供APIserarch-code，但是其不能在全部的公共库中搜索，故使用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/1-1.png">
+<meta property="og:image" content="https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/1-2.png">
+<meta property="og:image" content="https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/2-1.png">
+<meta property="og:image" content="https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/2-2.png">
+<meta property="article:published_time" content="2022-06-13T14:51:06.000Z">
+<meta property="article:modified_time" content="2022-07-10T23:14:14.528Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/1-1.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/07/02/python/%E8%AE%A9%E9%82%AE%E4%BB%B6%E5%8F%98%E5%BE%97%E7%AE%80%E5%8D%95-zmail/" class="title">让邮件变得简单-zmail</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-02T03:13:38.000Z" itemprop="datePublished">2022-07-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/" class="title">爬取github的关键字搜索结果</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-06-13T14:51:06.000Z" itemprop="datePublished">2022-06-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/06/08/%E7%88%AC%E8%99%AB/BeautifulSoup4%E8%A7%A3%E6%9E%90/" class="title">快速上手BeautifulSoup4</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-06-08T13:03:11.000Z" itemprop="datePublished">2022-06-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/" class="title">项目实战：go语言实现redis(四)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-27T12:51:46.000Z" itemprop="datePublished">2022-05-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/" class="title">项目实战：go语言实现redis(三)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-21T02:14:09.000Z" itemprop="datePublished">2022-05-21</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-爬虫/爬取github的关键字搜索结果" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      爬取github的关键字搜索结果
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/" class="article-date">
+	  <time datetime="2022-06-13T14:51:06.000Z" itemprop="datePublished">2022-06-13</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/python/">python</a>►<a class="article-category-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>功能：根据github搜索关键字得到的结果进行解析，提取需要的字段，整个过程均自动化。<br>思路：</p>
+<ul>
+<li>在页面上模拟操作，此过程中使用抓包工具<code>Fiddler</code>分析相关反爬策略</li>
+<li>可先获取到结果页面，进行离线解析，暂不依赖网络环境，提供工作效率</li>
+<li>补充完善抓取策略，比如并发，代理池。后续思考使用框架是不是效率更高<blockquote>
+<p>注：github官方有提供API<code>serarch-code</code>，但是其不能在全部的公共库中搜索，故使用爬虫爬取搜索数据，官方有提供API优先考虑能否从API中获取到的需要的数据。</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>依赖的模块有<code>requests</code>，<code>beautifulsoup4</code>以及解析器<code>lxml</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pip install requests</span><br><span class="line"></span><br><span class="line">pip install beautifulsoup4</span><br><span class="line"></span><br><span class="line">pip install lxml</span><br></pre></td></tr></table></figure>
+<h2 id="登录认证"><a href="#登录认证" class="headerlink" title="登录认证"></a>登录认证</h2><p>首先在页面上模拟搜索关键字结果，发现type为code类型的需要登录认证，然后在页面上登录，并通过<code>Fiddler</code>抓包发现发现最终提交数据的url是<code>session</code>，且需要提交下图所示的数据，经测试提交关键信息即可。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">commit</span><span class="punctuation">: </span>Sign in</span><br><span class="line">authenticity_token: your token</span><br><span class="line"><span class="attribute">login</span><span class="punctuation">: </span>your username</span><br><span class="line"><span class="attribute">password</span><span class="punctuation">: </span>your password</span><br></pre></td></tr></table></figure>
+<img src="/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/1-1.png" class="" title="image.png">
+<p>上面所需要提交的数据发现<code>authenticity_token</code>不知道从哪里来，因为请求的url是<code>login</code>，而实际提交的<br>url是<code>session</code>，很有可能是在请求登录页的时候动态生成的，去页面上搜索一下token果然有该参数。</p>
+<img src="/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/1-2.png" class="" title="image.png">
+<p>至此，前路基本已经铺平，只需要进行实现即可，这里注意使用<code>requests</code>包中的<code>session</code>对象，该对象能够保持会话，就不用重复登录了。</p>
+<h2 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h2><p>个人认为主要分为2个部分：</p>
+<ul>
+<li>获取到结果前：包括登录认证，获取所有请求链接等</li>
+<li>获取到结果后：包括页面的解析，字段提取等</li>
+</ul>
+<p>这里贴出多线程版本的代码，虽然优化空间还有很大，但也基本能运行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> queue <span class="keyword">import</span> Queue</span><br><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line"><span class="keyword">from</span> urllib <span class="keyword">import</span> parse</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> urllib3</span><br><span class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</span><br><span class="line"></span><br><span class="line">urllib3.disable_warnings()</span><br><span class="line"></span><br><span class="line">USERNAME = <span class="string">&quot;&quot;</span></span><br><span class="line">PASSWD = <span class="string">&quot;&quot;</span></span><br><span class="line">KEYWORD = <span class="string">&quot;&quot;</span></span><br><span class="line">PROXY = &#123;&#125;  <span class="comment"># https://free.kuaidaili.com/free/inha/</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">GithubCrawl</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, username, passwd, keyword</span>):</span><br><span class="line">        self.username = username</span><br><span class="line">        self.passwd = passwd</span><br><span class="line"></span><br><span class="line">        self.queue = Queue()</span><br><span class="line">        self.session = requests.Session()</span><br><span class="line">        self.result = []</span><br><span class="line"></span><br><span class="line">        self.threads = <span class="number">5</span></span><br><span class="line">        self.output_file = <span class="string">&quot;./temp.txt&quot;</span></span><br><span class="line">        self.login_url = <span class="string">&quot;https://github.com/login&quot;</span></span><br><span class="line">        self.post_url = <span class="string">&quot;https://github.com/session&quot;</span></span><br><span class="line">        self.search_url = <span class="string">f&quot;https://github.com/search?q=<span class="subst">&#123;keyword&#125;</span>&amp;type=code&quot;</span></span><br><span class="line">        self.headers = &#123;</span><br><span class="line">            <span class="string">&quot;Referer&quot;</span>: <span class="string">&quot;https://github.com/&quot;</span>,</span><br><span class="line">            <span class="string">&quot;Host&quot;</span>: <span class="string">&quot;github.com&quot;</span>,</span><br><span class="line">            <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36&quot;</span>,</span><br><span class="line">        &#125;</span><br><span class="line">        self.proxy = PROXY</span><br><span class="line"></span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_parse_content</span>(<span class="params">tags</span>):</span><br><span class="line">        content = <span class="string">&quot;&quot;</span></span><br><span class="line">        <span class="keyword">for</span> tag <span class="keyword">in</span> tags:</span><br><span class="line">            content += tag.text</span><br><span class="line">        <span class="keyword">return</span> content</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_get_token</span>(<span class="params">self</span>):</span><br><span class="line">        resp = self.session.get(self.login_url, headers=self.headers, verify=<span class="literal">False</span>, proxies=self.proxy)</span><br><span class="line">        soup = BeautifulSoup(resp.text, <span class="string">&quot;lxml&quot;</span>)</span><br><span class="line">        token = soup.find(<span class="string">&quot;input&quot;</span>, attrs=&#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;authenticity_token&quot;</span>&#125;).get(<span class="string">&quot;value&quot;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;token is: <span class="subst">&#123;token&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> token</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">login</span>(<span class="params">self, token</span>):</span><br><span class="line">        post_data = &#123;</span><br><span class="line">            <span class="string">&#x27;commit&#x27;</span>: <span class="string">&#x27;Sign in&#x27;</span>,</span><br><span class="line">            <span class="string">&#x27;login&#x27;</span>: self.username,</span><br><span class="line">            <span class="string">&#x27;password&#x27;</span>: self.passwd,</span><br><span class="line">            <span class="string">&#x27;authenticity_token&#x27;</span>: token</span><br><span class="line">        &#125;</span><br><span class="line">        resp = self.session.post(self.post_url, data=post_data, headers=self.headers, verify=<span class="literal">False</span>, proxies=self.proxy)</span><br><span class="line">        <span class="keyword">if</span> resp.status_code == <span class="number">200</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;successful set up a session on github...&quot;</span>)</span><br><span class="line">            self.get_urls()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">get_urls</span>(<span class="params">self</span>):</span><br><span class="line">        resp = self.session.get(self.search_url, headers=self.headers, verify=<span class="literal">False</span>, proxies=self.proxy)</span><br><span class="line">        soup = BeautifulSoup(resp.text, <span class="string">&quot;lxml&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> re.search(<span class="string">&quot;login&quot;</span>, soup.title.text, re.I):</span><br><span class="line">            <span class="keyword">raise</span> ConnectionError(<span class="string">&quot;the session is closed, please check network or add proxy!&quot;</span>)</span><br><span class="line">        total_pages = soup.find(attrs=&#123;<span class="string">&quot;aria-label&quot;</span>: <span class="string">&quot;Pagination&quot;</span>&#125;).text.split(<span class="string">&quot; &quot;</span>)[-<span class="number">2</span>]</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">int</span>(total_pages) + <span class="number">1</span>):</span><br><span class="line">            _url = self.search_url + <span class="string">f&quot;&amp;p=<span class="subst">&#123;i&#125;</span>&quot;</span></span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;add the url to queue: <span class="subst">&#123;_url&#125;</span>&quot;</span>)</span><br><span class="line">            self.queue.put(_url)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">get_data</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">            <span class="keyword">if</span> self.queue.empty():</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            url = self.queue.get()</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;get url: <span class="subst">&#123;url&#125;</span>&quot;</span>)</span><br><span class="line">            self.parse_search_page(url)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">parse_search_page</span>(<span class="params">self, url</span>):</span><br><span class="line">            resp = self.session.get(url, headers=self.headers, verify=<span class="literal">False</span>, proxies=self.proxy)</span><br><span class="line">            soup = BeautifulSoup(resp.text, <span class="string">&quot;lxml&quot;</span>)</span><br><span class="line">            items = soup.find_all(class_=<span class="string">&quot;code-list-item&quot;</span>)</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> items:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;not found data in the page <span class="subst">&#123;url&#125;</span>...&quot;</span>)</span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;start parse url: <span class="subst">&#123;url&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">for</span> item <span class="keyword">in</span> items:</span><br><span class="line">                text_small = item.find(class_=<span class="string">&quot;text-small&quot;</span>).text.strip().split(<span class="string">&quot;/&quot;</span>)</span><br><span class="line">                lang = item.find(attrs=&#123;<span class="string">&quot;itemprop&quot;</span>: <span class="string">&quot;programmingLanguage&quot;</span>&#125;)</span><br><span class="line">                data = &#123;</span><br><span class="line">                    <span class="string">&quot;author_favicon&quot;</span>: item.find(<span class="string">&quot;img&quot;</span>).attrs[<span class="string">&quot;src&quot;</span>],</span><br><span class="line">                    <span class="string">&quot;author&quot;</span>: text_small[<span class="number">0</span>].strip(),</span><br><span class="line">                    <span class="string">&quot;repository&quot;</span>: text_small[<span class="number">1</span>].strip(),</span><br><span class="line">                    <span class="string">&quot;filename&quot;</span>: item.find(class_=<span class="string">&quot;text-normal&quot;</span>).text.strip(),</span><br><span class="line">                    <span class="string">&quot;filepath&quot;</span>: parse.urljoin(<span class="string">&quot;https://github.com&quot;</span>, item.find(class_=<span class="string">&quot;text-normal&quot;</span>).a.attrs[<span class="string">&quot;href&quot;</span>]),</span><br><span class="line">                    <span class="string">&quot;content&quot;</span>: self._parse_content(item.find_all(class_=<span class="string">&quot;blob-code&quot;</span>)),</span><br><span class="line">                    <span class="string">&quot;language&quot;</span>: lang.text <span class="keyword">if</span> lang <span class="keyword">else</span> lang,</span><br><span class="line">                    <span class="string">&quot;updated_at&quot;</span>: item.find(class_=<span class="string">&quot;updated-at&quot;</span>).find(class_=<span class="string">&quot;no-wrap&quot;</span>).attrs[<span class="string">&quot;datetime&quot;</span>]</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="built_in">print</span>(data)</span><br><span class="line">                self.result.append(json.dumps(data))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">write_to_file</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(self.output_file, <span class="string">&quot;w&quot;</span>, encoding=<span class="string">&quot;utf-8&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.writelines([line + <span class="string">&quot;\n&quot;</span> <span class="keyword">for</span> line <span class="keyword">in</span> self.result])</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;finished...&quot;</span>)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;write result to file failed...&quot;</span>)</span><br><span class="line">            <span class="keyword">raise</span> e</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">start</span>(<span class="params">self</span>):</span><br><span class="line">        token = self._get_token()</span><br><span class="line">        self.login(token)</span><br><span class="line">        t_list = []</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(self.threads):</span><br><span class="line">            t = Thread(target=self.get_data)</span><br><span class="line">            t_list.append(t)</span><br><span class="line">            t.start()</span><br><span class="line">        <span class="keyword">for</span> t <span class="keyword">in</span> t_list:</span><br><span class="line">            t.join()</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;all task finished...&quot;</span>)</span><br><span class="line">        self.write_to_file()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    crawler = GithubCrawl(USERNAME, PASSWD, KEYWORD)</span><br><span class="line">    crawler.start()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="后续追加"><a href="#后续追加" class="headerlink" title="后续追加"></a>后续追加</h2><p>本以为到此大功告成，没成想交给同事运行测试的时候发现报错了，经个人简单排查后发现github对新设备登录有认证要求，需要提供邮件的验证码，故目前还得将自动化获取验证码这一步添加上去。</p>
+<img src="/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/2-1.png" class="" title="image.png">
+<p>继续使用<code>Fiddler</code>进行抓包分析，发现验证设备提交的url是<code>/sessions/verified-device</code>，并需要提交下列数据。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">authentictiy_token: your token</span><br><span class="line"><span class="attribute">opt</span><span class="punctuation">: </span>your verification code</span><br></pre></td></tr></table></figure>
+<img src="/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/2-2.png" class="" title="image.png">
+<blockquote>
+<p>注：这里的<code>authentictiy_token</code>不是之前&#x2F;login页面的，而是在&#x2F;sessions&#x2F;verified-device页面中新生成的</p>
+</blockquote>
+<p>最后，这里简单给出通过pop3协议获取邮箱验证码的代码，代码中确保了获取到的是在请求github页面后收到的验证码邮件，此外，还需在修改下上述github的<code>login</code>方法，完整代码见<a target="_blank" rel="noopener" href="https://github.com/zcej/GithubCrawl/blob/master/github_crawl3.py">git</a>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># email info</span></span><br><span class="line">EMAIL_ACCOUNT = <span class="string">&quot;&quot;</span></span><br><span class="line">AUTH_CODE = <span class="string">&quot;&quot;</span>  <span class="comment"># must authorization code</span></span><br><span class="line">POP3_SSL_SERVER = <span class="string">&quot;&quot;</span></span><br><span class="line">PROTOCOL = <span class="string">&quot;pop3&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">EmailReceiver</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, email_account, auth_code, pop3_ssl_server, send_login_time, protocol=<span class="string">&quot;pop3&quot;</span></span>):</span><br><span class="line">        self.email_account = email_account</span><br><span class="line">        self.auth_code = auth_code</span><br><span class="line">        self.pop3_ssl_server = pop3_ssl_server</span><br><span class="line">        self.send_login_time = send_login_time</span><br><span class="line"></span><br><span class="line">        self.email_total_number = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">        self.session = self.login_pop3() <span class="keyword">if</span> protocol == <span class="string">&quot;pop3&quot;</span> <span class="keyword">else</span> <span class="literal">None</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> self.session:</span><br><span class="line">            <span class="keyword">raise</span> ConnectionError(<span class="string">&quot;[Email Receiver] failed connect to the email server&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">login_pop3</span>(<span class="params">self</span>):</span><br><span class="line">        a = poplib.POP3_SSL(self.pop3_ssl_server)</span><br><span class="line">        a.user(self.email_account)</span><br><span class="line">        a.pass_(self.auth_code)</span><br><span class="line">        resp, mails, octets = a.<span class="built_in">list</span>()</span><br><span class="line">        self.email_total_number = <span class="built_in">len</span>(mails)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[Email Receiver] the number of email is: <span class="subst">&#123;self.email_total_number&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> a <span class="keyword">if</span> resp.decode(<span class="string">&quot;utf-8&quot;</span>) == <span class="string">&quot;+OK&quot;</span> <span class="keyword">else</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">logout</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">if</span> self.session:</span><br><span class="line">            self.session.quit()</span><br><span class="line"></span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">decode_str</span>(<span class="params">s</span>):</span><br><span class="line">        value, charset = decode_header(s)[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">if</span> charset:</span><br><span class="line">            value = value.decode(charset)</span><br><span class="line">        <span class="keyword">return</span> value</span><br><span class="line"></span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_is_latest_email</span>(<span class="params">content, send_login_time</span>) -&gt; <span class="built_in">bool</span>:</span><br><span class="line">        date = content.get(<span class="string">&quot;Received&quot;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line">        ret = re.search(<span class="string">r&quot;(?:\d+:)&#123;2,&#125;?\d+&quot;</span>, date)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> ret:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[Email Receiver] get the latest email recv time failed, date: <span class="subst">&#123;date&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">        recv_email_time = ret.group()</span><br><span class="line">        time_diff = datetime.strptime(recv_email_time, <span class="string">&quot;%H:%M:%S&quot;</span>) - datetime.strptime(send_login_time, <span class="string">&quot;%H:%M:%S&quot;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;recv: <span class="subst">&#123;recv_email_time&#125;</span>, login: <span class="subst">&#123;send_login_time&#125;</span>, <span class="subst">&#123;time_diff&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> time_diff.days &lt; <span class="number">0</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[Email Receiver] the latest email received was not after logged into github&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> time_diff.days == <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_is_github_verify_email</span>(<span class="params">self, content</span>) -&gt; <span class="built_in">bool</span>:</span><br><span class="line">        subject = self.decode_str(content.get(<span class="string">&quot;Subject&quot;</span>, <span class="string">&quot;&quot;</span>))</span><br><span class="line">        from_ = self.decode_str(content.get(<span class="string">&quot;From&quot;</span>, <span class="string">&quot;&quot;</span>))</span><br><span class="line">        ret = re.search(<span class="string">r&quot;\[GitHub] Please verify your device&quot;</span>, subject)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> ret:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[Email Receiver] the latest email is not from github, subject: <span class="subst">&#123;subject&#125;</span>, From: <span class="subst">&#123;from_&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">get_email_content</span>(<span class="params">session, total_number</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[Email Receiver] curr total_number is: <span class="subst">&#123;total_number&#125;</span>&quot;</span>)</span><br><span class="line">        resp, lines, octets = session.retr(total_number)</span><br><span class="line">        msg_content = <span class="string">b&quot;\r\n&quot;</span>.join(lines).decode(<span class="string">&quot;utf-8&quot;</span>, <span class="string">&quot;ignore&quot;</span>)</span><br><span class="line">        content = Parser().parsestr(msg_content)</span><br><span class="line">        <span class="keyword">return</span> content</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">get_verification_code</span>(<span class="params">self</span>):</span><br><span class="line">        content = self.get_email_content(self.session, self.email_total_number)</span><br><span class="line">        flag = <span class="literal">False</span></span><br><span class="line">        <span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">            <span class="keyword">if</span> self._is_github_verify_email(content) <span class="keyword">and</span> self._is_latest_email(content, self.send_login_time):</span><br><span class="line">                flag = <span class="literal">True</span></span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            time.sleep(<span class="number">6</span>)</span><br><span class="line"></span><br><span class="line">            temp_session = poplib.POP3_SSL(self.pop3_ssl_server)</span><br><span class="line">            temp_session.user(self.email_account)</span><br><span class="line">            temp_session.pass_(self.auth_code)</span><br><span class="line">            emails, _ = temp_session.stat()</span><br><span class="line">            <span class="keyword">if</span> emails &gt; self.email_total_number:</span><br><span class="line">                content = self.get_email_content(temp_session, emails)</span><br><span class="line">            temp_session.quit()</span><br><span class="line"></span><br><span class="line">        verification_code = re.search(<span class="string">r&quot;Verification code: (\d+)&quot;</span>, <span class="built_in">str</span>(content))</span><br><span class="line">        <span class="keyword">if</span> flag <span class="keyword">and</span> verification_code:</span><br><span class="line">            <span class="keyword">return</span> verification_code.groups()[<span class="number">0</span>]</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[Email Receiver] get github verification code failed, try 5 times&quot;</span>)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：经个人测试，使用poplib在同一次连接中无法实时获取最新邮件，目前的解决方法是重新建立了临时的连接进行获取。后续发现有python的第三方模块zmail支持实时获取，简单研究了下，详见后续文章。</p>
+</blockquote>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/" title="爬取github的关键字搜索结果" target="_blank" rel="external">https://zcej.github.io/2022/06/13/爬虫/爬取github的关键字搜索结果/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2022/07/02/python/%E8%AE%A9%E9%82%AE%E4%BB%B6%E5%8F%98%E5%BE%97%E7%AE%80%E5%8D%95-zmail/" title="让邮件变得简单-zmail"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2022/06/08/%E7%88%AC%E8%99%AB/BeautifulSoup4%E8%A7%A3%E6%9E%90/" title="快速上手BeautifulSoup4"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
