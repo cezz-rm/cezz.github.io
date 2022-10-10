@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>gRPC如何做身份认证？ | My Blog</title>
+  <meta name="description" content="当上线gRPC服务到生产环境的时候，首先需要考虑的就是数据的安全，那么如何保证呢，下面以python为例，进行简单介绍。 RPC的认证方式RPC服务一般在服务内网使用，不过也有存在于外网的情况，不论是哪种RPC服务，走http2.0或是其他基于TCP实现socket的协议，在部署到生产环境的时候还是需要考虑身份认证加密的，以此来保证数据的安全。 基于SSL&#x2F;TLS的通道加密通常身份认证机">
+<meta property="og:type" content="article">
+<meta property="og:title" content="gRPC如何做身份认证？">
+<meta property="og:url" content="https://zcej.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="当上线gRPC服务到生产环境的时候，首先需要考虑的就是数据的安全，那么如何保证呢，下面以python为例，进行简单介绍。 RPC的认证方式RPC服务一般在服务内网使用，不过也有存在于外网的情况，不论是哪种RPC服务，走http2.0或是其他基于TCP实现socket的协议，在部署到生产环境的时候还是需要考虑身份认证加密的，以此来保证数据的安全。 基于SSL&#x2F;TLS的通道加密通常身份认证机">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zcej.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/grpc-ssl.png">
+<meta property="article:published_time" content="2022-08-10T14:05:51.000Z">
+<meta property="article:modified_time" content="2022-10-10T14:07:46.851Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zcej.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/grpc-ssl.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/grpc/">grpc</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/" class="title">gRPC如何做身份认证？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-08-10T14:05:51.000Z" itemprop="datePublished">2022-08-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/grpc/">grpc</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/08/06/grpc/%E4%BB%80%E4%B9%88%E6%98%AFgRPC%EF%BC%8C%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E4%B8%8B%E4%BD%BF%E7%94%A8%EF%BC%9F/" class="title">什么是gRPC，什么场景下使用gRPC？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-08-06T01:29:10.000Z" itemprop="datePublished">2022-08-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/07/02/python/%E8%AE%A9%E9%82%AE%E4%BB%B6%E5%8F%98%E5%BE%97%E7%AE%80%E5%8D%95-zmail/" class="title">让邮件变得简单-zmail</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-02T03:13:38.000Z" itemprop="datePublished">2022-07-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/" class="title">爬取github的关键字搜索结果</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-06-13T14:51:06.000Z" itemprop="datePublished">2022-06-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/06/08/%E7%88%AC%E8%99%AB/BeautifulSoup4%E8%A7%A3%E6%9E%90/" class="title">快速上手BeautifulSoup4</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-06-08T13:03:11.000Z" itemprop="datePublished">2022-06-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-grpc/gRPC如何做身份认证？" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      gRPC如何做身份认证？
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/" class="article-date">
+	  <time datetime="2022-08-10T14:05:51.000Z" itemprop="datePublished">2022-08-10</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/grpc/">grpc</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>当上线gRPC服务到生产环境的时候，首先需要考虑的就是数据的安全，那么如何保证呢，下面以python为例，进行简单介绍。</p>
+<h2 id="RPC的认证方式"><a href="#RPC的认证方式" class="headerlink" title="RPC的认证方式"></a>RPC的认证方式</h2><p>RPC服务一般在服务内网使用，不过也有存在于外网的情况，不论是哪种RPC服务，走http2.0或是其他基于TCP实现socket的协议，在部署到生产环境的时候还是需要考虑身份认证加密的，以此来保证数据的安全。</p>
+<h3 id="基于SSL-x2F-TLS的通道加密"><a href="#基于SSL-x2F-TLS的通道加密" class="headerlink" title="基于SSL&#x2F;TLS的通道加密"></a>基于SSL&#x2F;TLS的通道加密</h3><p>通常身份认证机制是通过SSL&#x2F;TLS对传输通道加密，以防止请求和响应消息中的敏感数据泄露。使用的场景主要有三种：</p>
+<ul>
+<li>后端微服务直接开放给端侧，例如手机app、tv、多屏等，没有统一的API Gateway&#x2F;SLB做安全接入和认证</li>
+<li>后端微服务直接开放给DMZ部署的管理或者运维类Portal</li>
+<li>后端微服务直接开放给第三方合作伙伴&#x2F;渠道</li>
+</ul>
+<p>除了上述常用的跨网络场景之外，对于一些安全等级要求比较高的业务场景，即便是内网通信，只要跨主机&#x2F;VM&#x2F;容器等，都强制要求对传输通道进行加密。在该场景下，即便只存在内网各模块的RPC调用，仍然需要进行加密。<br>针对敏感数据的单独加密<br>有些RPC调用并不涉及敏感数据的传输，或者敏感字段占比较低，为了最大程度的提升吞吐量，降低调用时延，通常会采用HTTP&#x2F;TCP+敏感字段单独加密的方式。既保证了敏感信息的传输安全，同时也降低了采用SSL&#x2F;TLS加密通道带来的性能损耗，对于JDK原生的SSL类库，这种性能提升尤为明显。</p>
+<h3 id="采用该方案主要有两个缺点："><a href="#采用该方案主要有两个缺点：" class="headerlink" title="采用该方案主要有两个缺点："></a>采用该方案主要有两个缺点：</h3><ul>
+<li>对敏感信息的识别可能存在偏差，容易遗漏或者过度保护，需要解读数据和隐私保护方面的法律法规，而且不同国家对敏感数据的定义也不同，这会为识别带来很多困难。</li>
+<li>接口升级时容易遗漏，例如开发新增字段，忘记识别是否未敏感数据。</li>
+</ul>
+<h2 id="gRPC认证的的具体流程"><a href="#gRPC认证的的具体流程" class="headerlink" title="gRPC认证的的具体流程"></a>gRPC认证的的具体流程</h2><p>对于gRPC，SSL&#x2F;TLS协议也是基本的身份加密认证方法，SSL&#x2F;TLS协议采用公钥加密，客户端向服务端索要公钥，然后用公钥加密信息，服务器收到密文后，用自己的私钥解密。<br>SSL&#x2F;TLS分为单向认证和双向认证，在实际业务中，单向认证使用较多，即客户端认证服务端，服务端不认证客户端，认证流程如下：</p>
+<ul>
+<li>客户端向服务端传送客户端SSL协议的版本号，支持的加密算法种类，产生的随机数，以及其他可选信息</li>
+<li>服务端返回握手应答，向客户端传送确认SSL协议的版本号、加密算法的种类、随机数以及其他相关信息</li>
+<li>服务端向客户端发送自己的公钥</li>
+<li>客户端对服务端的证书进行认证，服务端的合法性校验包括：证书是否过期、发行服务器证书的CA是否可靠、发行者证书的公钥能否正确解开服务器证书的“发行者的数字签名”、服务器证书上的域名是否和服务器的实际域名相匹配等</li>
+<li>客户端随机生成一个用于后面通讯的“对称密码”，然后用服务端的公钥对其加密，将加密后的“预主密码”传给服务端</li>
+<li>服务端用自己的私钥解开加密的“预主密码”，然后执行一系列步骤来产生主密码</li>
+<li>客户端向服务端发出信息，指明后面的数据通讯将使用主密码为对称密钥，同时通知服务器客户端的握手过程结束</li>
+<li>服务端向客户端发出信息，指明后面的数据通讯将使用主密码为对称密钥，同时通知客户端服务端的握手过程结束</li>
+<li>SSL的握手部分结束，SSL安全通道简历，客户端和服务端开始使用相同的对称密钥对数据进行加密，然后通过socket进行传输</li>
+</ul>
+<h2 id="具体示例"><a href="#具体示例" class="headerlink" title="具体示例"></a>具体示例</h2><h3 id="生成证书"><a href="#生成证书" class="headerlink" title="生成证书"></a>生成证书</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 3650 -out server.crt</span><br></pre></td></tr></table></figure>
+<p>在执行生成证书的过程中，需要填入<code>Country Name</code>、<code>State or Province Name</code>、<code>Locality Name</code>、<code>Organization Name</code>、<code>Organization Unit Name</code>、<code>Common Name</code>、<code>Email Address</code>等等，这些可以按需填入，或者留空也行。</p>
+<blockquote>
+<p>注：其中的<code>Common Name</code>支持在客户端连接的时候指定连接的名字，可以自己定义之后填上，否则留空的话可能自动获取不到</p>
+</blockquote>
+<h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><p>下面模拟一个任务的grpc调用，服务端将流式响应任务的进度信息<br><code>proto</code>定义如下：</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">&quot;proto3&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">service </span><span class="title class_">Task</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> StartScan(TaskInfoRequest) <span class="keyword">returns</span>(stream CommonResponse)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">TaskInfoRequest</span> &#123;</span><br><span class="line">    <span class="type">string</span> task_id = <span class="number">1</span>;</span><br><span class="line">    <span class="type">string</span> data = <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">CommonResponse</span> &#123;</span><br><span class="line">    <span class="type">int32</span> code = <span class="number">1</span>;</span><br><span class="line">    <span class="type">string</span> msg = <span class="number">2</span>;</span><br><span class="line">    <span class="type">string</span> progress = <span class="number">3</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：执行下述命令生成python的proto序列化协议源代码<br><code>python -m grpc_tools.protoc --python_out=. --grpc_python_out=. -I. task.proto</code></p>
+</blockquote>
+<p>服务端代码<code>server.py</code>如下所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> concurrent <span class="keyword">import</span> futures</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> grpc</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> proto <span class="keyword">import</span> task_pb2, task_pb2_grpc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TaskServicer</span>(task_pb2_grpc.TaskServicer):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">StartScan</span>(<span class="params">self, request, context</span>):</span><br><span class="line">        progress = <span class="number">0</span></span><br><span class="line">        <span class="keyword">while</span> progress &lt; <span class="number">100</span>:</span><br><span class="line">            resp = &#123;</span><br><span class="line">                <span class="string">&quot;code&quot;</span>: <span class="number">200</span>,</span><br><span class="line">                <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;succeed&quot;</span>,</span><br><span class="line">                <span class="string">&quot;progress&quot;</span>: <span class="built_in">str</span>(progress)</span><br><span class="line">            &#125;</span><br><span class="line">            feature = task_pb2.CommonResponse(**resp)</span><br><span class="line">            tmp = random.randint(<span class="number">1</span>, <span class="number">10</span>)</span><br><span class="line">            progress += tmp</span><br><span class="line">            time.sleep(<span class="number">5</span>)</span><br><span class="line">            <span class="keyword">yield</span> feature</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">serve</span>():</span><br><span class="line">    server = grpc.server(futures.ThreadPoolExecutor(max_workers=<span class="number">10</span>), options=[</span><br><span class="line">        <span class="comment"># (&quot;grpc.max_send_message_length&quot;, 100 * 1024 * 1024),</span></span><br><span class="line">        <span class="comment"># (&quot;grpc.max_receive_message_length&quot;, 100 * 1024 * 1024)</span></span><br><span class="line">    ])</span><br><span class="line">    task_pb2_grpc.add_TaskServicer_to_server(TaskServicer(), server)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;./server.key&quot;</span>, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        private_key = f.read()</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;./server.crt&quot;</span>, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        certificate_chain = f.read()</span><br><span class="line"></span><br><span class="line">    server_credentials = grpc.ssl_server_credentials(((private_key, certificate_chain), ))</span><br><span class="line">    server.add_secure_port(<span class="string">&quot;[::]:50051&quot;</span>, server_credentials)</span><br><span class="line"></span><br><span class="line">    server.start()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;gRPC服务端已开启，端口为50051...&quot;</span>)</span><br><span class="line">    server.wait_for_termination()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    serve()</span><br></pre></td></tr></table></figure>
+<p>客户端代码<code>client.py</code>如下所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> grpc</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> proto <span class="keyword">import</span> task_pb2, task_pb2_grpc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_progress</span>(<span class="params">*host</span>):</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;server.crt&quot;</span>, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        trusted_certs = f.read()</span><br><span class="line">    credentials = grpc.ssl_channel_credentials(root_certificates=trusted_certs)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> grpc.secure_channel(<span class="string">&quot;localhost:50001&quot;</span>, credentials) <span class="keyword">as</span> channel:</span><br><span class="line">        stub = task_pb2_grpc.TaskStub(channel)</span><br><span class="line">        req = &#123;</span><br><span class="line">            <span class="string">&quot;task_id&quot;</span>: <span class="string">&quot;24dsad&quot;</span>,</span><br><span class="line">            <span class="string">&quot;data&quot;</span>: <span class="string">&quot;12&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">        features = stub.StartScan(task_pb2.TaskInfoRequest(**req))</span><br><span class="line">        <span class="keyword">for</span> feature <span class="keyword">in</span> features:</span><br><span class="line">            <span class="built_in">print</span>(feature.progress)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run</span>():</span><br><span class="line">    <span class="keyword">with</span> grpc.insecure_channel(<span class="string">&quot;localhost:50001&quot;</span>) <span class="keyword">as</span> channel:</span><br><span class="line">        stub = task_pb2_grpc.TaskStub(channel)</span><br><span class="line">        req = &#123;</span><br><span class="line">            <span class="string">&quot;task_id&quot;</span>: <span class="string">&quot;1&quot;</span>,</span><br><span class="line">            <span class="string">&quot;data&quot;</span>: <span class="string">&quot;my test&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">        features = stub.StartScan(task_pb2.TaskInfoRequest(**req))</span><br><span class="line">        <span class="keyword">for</span> feature <span class="keyword">in</span> features:</span><br><span class="line">            <span class="built_in">print</span>(feature.progress)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    run()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>按照上述实现，即完成了gRPC的认证加密。</p>
+<h3 id="抓包分析"><a href="#抓包分析" class="headerlink" title="抓包分析"></a>抓包分析</h3><p>运行上述的代码，进行抓包如下，确认gRPC通信已通过SSL&#x2F;TLS加密认证。</p>
+<img src="/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/grpc-ssl.png" class="" title="grpc-ssl">
+
+
+
+
+
+
+
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/" title="gRPC如何做身份认证？" target="_blank" rel="external">https://zcej.github.io/2022/08/10/grpc/gRPC如何做身份认证？/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2022/08/06/grpc/%E4%BB%80%E4%B9%88%E6%98%AFgRPC%EF%BC%8C%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E4%B8%8B%E4%BD%BF%E7%94%A8%EF%BC%9F/" title="什么是gRPC，什么场景下使用gRPC？"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
