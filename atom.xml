@@ -6,7 +6,7 @@
   <link href="https://zcej.github.io/atom.xml" rel="self"/>
   
   <link href="https://zcej.github.io/"/>
-  <updated>2022-10-10T14:07:46.851Z</updated>
+  <updated>2023-01-29T12:51:56.522Z</updated>
   <id>https://zcej.github.io/</id>
   
   <author>
@@ -15,6 +15,33 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>SSL_TLS相关内容梳理</title>
+    <link href="https://zcej.github.io/2022/08/14/%E5%85%B6%E4%BB%96/SSL_TLS%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9%E6%A2%B3%E7%90%86/"/>
+    <id>https://zcej.github.io/2022/08/14/%E5%85%B6%E4%BB%96/SSL_TLS%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9%E6%A2%B3%E7%90%86/</id>
+    <published>2022-08-14T02:21:02.000Z</published>
+    <updated>2023-01-29T12:51:56.522Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>证书文件格式说明：</p><ul><li>.key：私钥文件，通常使用rsa算法，私钥需要自己保存，无需提交给ca机构</li><li>.crt：证书文件，certificate的缩写</li><li>.csr：证书签名请求(证书请求文件)，含有公钥信息</li><li>.crl：证书吊销列表</li><li>.pem：用于导出，导入证书时候的证书格式，是.key和.crt的合体</li></ul></blockquote><h3 id="Q：什么是数字签名，有什么作用？"><a href="#Q：什么是数字签名，有什么作用？" class="headerlink" title="Q：什么是数字签名，有什么作用？"></a>Q：什么是数字签名，有什么作用？</h3><p>作用：验证消息的来源，以及证明消息是否被篡改</p><p>签名：用私钥对消息的哈希值进行加密称为签名，<strong>只有拥有私钥的用户可以生成签名</strong></p><blockquote><p><strong>生成签名的步骤：</strong></p><ol><li>对消息进行哈希计算，得到哈希值</li><li>利用私钥对哈希值进行加密，生成签名</li><li>将签名附加在消息后面，一起发送过去</li></ol></blockquote><p>验证签名：用公钥解密签名这一步称为验证签名，所有用户都可以验证签名（因为公钥是公开的）</p><blockquote><p><strong>验证签名的步骤：</strong></p><ol><li>收到消息后，提取消息中的签名</li><li>用公钥对签名进行解密，得到哈希值1</li><li>对消息中的正文进行哈希计算，得到哈希值2</li><li>比较哈希值1和哈希值2，如果相同，则验证成功</li></ol></blockquote><h3 id="Q：什么是证书，如何验证证书？"><a href="#Q：什么是证书，如何验证证书？" class="headerlink" title="Q：什么是证书，如何验证证书？"></a>Q：什么是证书，如何验证证书？</h3><p>证书：实际上就是公钥的数字签名，是对公钥合法性提供证明的技术。它包括公钥本身，公钥的数字签名，公钥拥有者的信息等等。</p><blockquote><p><strong>生成证书的步骤：</strong></p><ol><li>服务器将公钥A给CA（公钥是服务器的）</li><li>CA用自己的私钥B给公钥A加密，生成数字签名A</li><li>CA把公钥A，数字签名A，附加一些服务器信息整合在一起，生成证书，发回给服务器</li></ol></blockquote><p>注：私钥B是用于加密公钥A的，私钥B和公钥A并不是配对的</p><p>验证证书的数字签名需要另一个公钥，保证这个公钥的合法性则需要第三方认证机构，即CA。CA能够认定公钥确实属于此人，并能生成公钥的数字签名。CA有国际性组织和政府设立的组织，也有通过提供认证服务来盈利的组织。</p><blockquote><p><strong>验证证书的步骤：</strong></p><ol><li>客户端得到证书</li><li>客户端得到证书的公钥B（通过CA或其他途径）</li><li>客户端用公钥B对证书中的数字签名解密，得到哈希值</li><li>客户端对公钥进行哈希计算</li><li>两个哈希值对比，如果相同，则证书合法</li></ol></blockquote><p>注：公钥B和上述的私钥B是配对的，分别用于对证书的验证（解密）和生成（加密）</p><p>另外，当用户私钥丢失，被盗时，认证机构需要对证书进行作废。要作废证书，认证机构需要制作一张证书作废清单（Certificate Revocation List），检查CRL。我们在验证证书的合法性时，除了验证其是否在有效期内，还需要查询其CRL，确认证书是否有效。</p><h3 id="Q：单向认证-amp-双向认证-amp-不认证"><a href="#Q：单向认证-amp-双向认证-amp-不认证" class="headerlink" title="Q：单向认证 &amp; 双向认证 &amp; 不认证"></a>Q：单向认证 &amp; 双向认证 &amp; 不认证</h3><ul><li>单向认证：指的是只有一个对象校验对端的整数合法性，通常是客户端来校验服务器的合法性。那么client需要一个ca.crt，服务端需要server.crt、server.key，当然也可以是服务端校验客户端。</li><li>双向认证：指的是相互校验，服务器需要校验每个client证书，client也需要校验服务器证书</li><li>不认证：指的是不相互校验证书，但仍然使用TLS连接<h3 id="Q：单向认证流程？"><a href="#Q：单向认证流程？" class="headerlink" title="Q：单向认证流程？"></a>Q：单向认证流程？</h3></li></ul><ol><li>client_hello：客户端发起请求，以明文传输请求信息，包含版本信息，加密套件候选列表，压缩算法候选列表，随机数，扩展字段等信息</li><li>server_hello + server_certificate + server_hello_done<ol><li>server_hello，服务端返回协商的信息结果，包括选择使用的协议版本version，选择的加密套件cipher suite，选择的压缩算法compression method、随机数random_S等，其中随机数用于后续的密钥协商</li><li>server_certificates，服务端配置对应的证书链，用于身份验证与密钥交换</li><li>server_hello_done，通知客户端server_hello信息发送结束</li></ol></li><li>证书校验<ol><li>证书&#x2F;证书链的可信性</li><li>证书是否吊销revocation，有两类方式离线CRL与在线OCSP，不同客户端行为不同</li><li>有效期expire date，证书是否在有效时间范围</li><li>域名damain，检查证书域名是否与当前的访问域名匹配(CN字段)</li></ol></li><li>client_key_exchange + change_cipher_spec + encrypted_handshake_message<ol><li>client_key_exchange：合法性验证通过之后，客户端计算产生随机数字pre-master，并用证书公钥加密，发送给服务器</li><li>此时客户端已经获取全部的计算协商密钥需要的信息：两个明文随机数random_C和random_S与自己计算产生的pre-master，计算得到协商密钥<code>enc_key=Func(...)</code></li><li>change_cipher_spec：客户端通知服务器后续的通信都采用协商的通信密钥和加密算法进行加密通信</li><li>encrypted_handshake_message：结合之前所有通信参数的hash值与其他相关信息生成一段数据，采用协商密钥session secret与算法进行加密，然后发送给服务器用于数据与握手验证</li></ol></li><li>change_cipher_spec + encrypted_handshake_message<ol><li>服务器用私钥解密加密的pre-master数据，基于之前交换的两个明文随机数random_C和random_S，计算得到协商密钥<code>enc_key=Func(...)</code></li><li>计算之前所有接收信息的哈希值，然后解密客户端发送的change_cipher_spec以告知客户端后续的通信都采用协商的密钥与算法进行加密通信</li><li>change_cipher_spec，验证通过之后，服务器同样发送change_cipher_spec以告知客户端后续的通信都采用协商的密钥与算法进行加密通信</li><li>encrypted_handshake_message，服务器也结合所有当前的通信参数信息生成一段数据并采用协商密钥session secret与算法加密并发送到客户端</li></ol></li><li>握手结束：客户端计算所有接收信息的哈希值，并采用协商密钥解密encrypted_handshake_message，验证服务器发送的数据和密钥，验证通过则握手完成</li><li>加密通信：开始使用协商密钥与算法进行加密通信</li></ol>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;证书文件格式说明：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;.key：私钥文件，通常使用rsa算法，私钥需要自己保存，无需提交给ca机构&lt;/li&gt;
+&lt;li&gt;.crt：证书文件，certificate的缩写&lt;/li&gt;
+&lt;li&gt;.csr：证书签名请求(证书请求文件)</summary>
+      
+    
+    
+    
+    <category term="其他" scheme="https://zcej.github.io/categories/%E5%85%B6%E4%BB%96/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>gRPC如何做身份认证？</title>
@@ -30,33 +57,6 @@
       
     <summary type="html">&lt;p&gt;当上线gRPC服务到生产环境的时候，首先需要考虑的就是数据的安全，那么如何保证呢，下面以python为例，进行简单介绍。&lt;/p&gt;
 &lt;h2 id=&quot;RPC的认证方式&quot;&gt;&lt;a href=&quot;#RPC的认证方式&quot; class=&quot;headerlink&quot; title=&quot;RPC的认证方式</summary>
-      
-    
-    
-    
-    <category term="grpc" scheme="https://zcej.github.io/categories/grpc/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>gRPC如何做身份认证？</title>
-    <link href="https://zcej.github.io/2022/08/10/%E5%85%B6%E4%BB%96/SSL_TLS%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9%E6%A2%B3%E7%90%86/"/>
-    <id>https://zcej.github.io/2022/08/10/%E5%85%B6%E4%BB%96/SSL_TLS%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9%E6%A2%B3%E7%90%86/</id>
-    <published>2022-08-10T14:05:51.000Z</published>
-    <updated>2023-01-29T12:37:02.888Z</updated>
-    
-    <content type="html"><![CDATA[<blockquote><p>证书文件格式说明：</p><ul><li>.key：私钥文件，通常使用rsa算法，私钥需要自己保存，无需提交给ca机构</li><li>.crt：证书文件，certificate的缩写</li><li>.csr：证书签名请求(证书请求文件)，含有公钥信息</li><li>.crl：证书吊销列表</li><li>.pem：用于导出，导入证书时候的证书格式，是.key和.crt的合体</li></ul></blockquote><h3 id="Q：什么是数字签名，有什么作用？"><a href="#Q：什么是数字签名，有什么作用？" class="headerlink" title="Q：什么是数字签名，有什么作用？"></a>Q：什么是数字签名，有什么作用？</h3><p>作用：验证消息的来源，以及证明消息是否被篡改</p><p>签名：用私钥对消息的哈希值进行加密称为签名，<strong>只有拥有私钥的用户可以生成签名</strong></p><blockquote><p><strong>生成签名的步骤：</strong></p><ol><li>对消息进行哈希计算，得到哈希值</li><li>利用私钥对哈希值进行加密，生成签名</li><li>将签名附加在消息后面，一起发送过去</li></ol></blockquote><p>验证签名：用公钥解密签名这一步称为验证签名，所有用户都可以验证签名（因为公钥是公开的）</p><blockquote><p><strong>验证签名的步骤：</strong></p><ol><li>收到消息后，提取消息中的签名</li><li>用公钥对签名进行解密，得到哈希值1</li><li>对消息中的正文进行哈希计算，得到哈希值2</li><li>比较哈希值1和哈希值2，如果相同，则验证成功</li></ol></blockquote><h3 id="Q：什么是证书，如何验证证书？"><a href="#Q：什么是证书，如何验证证书？" class="headerlink" title="Q：什么是证书，如何验证证书？"></a>Q：什么是证书，如何验证证书？</h3><p>证书：实际上就是公钥的数字签名，是对公钥合法性提供证明的技术。它包括公钥本身，公钥的数字签名，公钥拥有者的信息等等。</p><blockquote><p><strong>生成证书的步骤：</strong></p><ol><li>服务器将公钥A给CA（公钥是服务器的）</li><li>CA用自己的私钥B给公钥A加密，生成数字签名A</li><li>CA把公钥A，数字签名A，附加一些服务器信息整合在一起，生成证书，发回给服务器</li></ol></blockquote><p>注：私钥B是用于加密公钥A的，私钥B和公钥A并不是配对的</p><p>验证证书的数字签名需要另一个公钥，保证这个公钥的合法性则需要第三方认证机构，即CA。CA能够认定公钥确实属于此人，并能生成公钥的数字签名。CA有国际性组织和政府设立的组织，也有通过提供认证服务来盈利的组织。</p><blockquote><p><strong>验证证书的步骤：</strong></p><ol><li>客户端得到证书</li><li>客户端得到证书的公钥B（通过CA或其他途径）</li><li>客户端用公钥B对证书中的数字签名解密，得到哈希值</li><li>客户端对公钥进行哈希计算</li><li>两个哈希值对比，如果相同，则证书合法</li></ol></blockquote><p>注：公钥B和上述的私钥B是配对的，分别用于对证书的验证（解密）和生成（加密）</p><p>另外，当用户私钥丢失，被盗时，认证机构需要对证书进行作废。要作废证书，认证机构需要制作一张证书作废清单（Certificate Revocation List），检查CRL。我们在验证证书的合法性时，除了验证其是否在有效期内，还需要查询其CRL，确认证书是否有效。</p><h3 id="Q：单向认证-amp-双向认证-amp-不认证"><a href="#Q：单向认证-amp-双向认证-amp-不认证" class="headerlink" title="Q：单向认证 &amp; 双向认证 &amp; 不认证"></a>Q：单向认证 &amp; 双向认证 &amp; 不认证</h3><ul><li>单向认证：指的是只有一个对象校验对端的整数合法性，通常是客户端来校验服务器的合法性。那么client需要一个ca.crt，服务端需要server.crt、server.key，当然也可以是服务端校验客户端。</li><li>双向认证：指的是相互校验，服务器需要校验每个client证书，client也需要校验服务器证书</li><li>不认证：指的是不相互校验证书，但仍然使用TLS连接<h3 id="Q：单向认证流程？"><a href="#Q：单向认证流程？" class="headerlink" title="Q：单向认证流程？"></a>Q：单向认证流程？</h3></li></ul><ol><li>client_hello：客户端发起请求，以明文传输请求信息，包含版本信息，加密套件候选列表，压缩算法候选列表，随机数，扩展字段等信息</li><li>server_hello + server_certificate + server_hello_done<ol><li>server_hello，服务端返回协商的信息结果，包括选择使用的协议版本version，选择的加密套件cipher suite，选择的压缩算法compression method、随机数random_S等，其中随机数用于后续的密钥协商</li><li>server_certificates，服务端配置对应的证书链，用于身份验证与密钥交换</li><li>server_hello_done，通知客户端server_hello信息发送结束</li></ol></li><li>证书校验<ol><li>证书&#x2F;证书链的可信性</li><li>证书是否吊销revocation，有两类方式离线CRL与在线OCSP，不同客户端行为不同</li><li>有效期expire date，证书是否在有效时间范围</li><li>域名damain，检查证书域名是否与当前的访问域名匹配(CN字段)</li></ol></li><li>client_key_exchange + change_cipher_spec + encrypted_handshake_message<ol><li>client_key_exchange：合法性验证通过之后，客户端计算产生随机数字pre-master，并用证书公钥加密，发送给服务器</li><li>此时客户端已经获取全部的计算协商密钥需要的信息：两个明文随机数random_C和random_S与自己计算产生的pre-master，计算得到协商密钥<code>enc_key=Func(...)</code></li><li>change_cipher_spec：客户端通知服务器后续的通信都采用协商的通信密钥和加密算法进行加密通信</li><li>encrypted_handshake_message：结合之前所有通信参数的hash值与其他相关信息生成一段数据，采用协商密钥session secret与算法进行加密，然后发送给服务器用于数据与握手验证</li></ol></li><li>change_cipher_spec + encrypted_handshake_message<ol><li>服务器用私钥解密加密的pre-master数据，基于之前交换的两个明文随机数random_C和random_S，计算得到协商密钥<code>enc_key=Func(...)</code></li><li>计算之前所有接收信息的哈希值，然后解密客户端发送的change_cipher_spec以告知客户端后续的通信都采用协商的密钥与算法进行加密通信</li><li>change_cipher_spec，验证通过之后，服务器同样发送change_cipher_spec以告知客户端后续的通信都采用协商的密钥与算法进行加密通信</li><li>encrypted_handshake_message，服务器也结合所有当前的通信参数信息生成一段数据并采用协商密钥session secret与算法加密并发送到客户端</li></ol></li><li>握手结束：客户端计算所有接收信息的哈希值，并采用协商密钥解密encrypted_handshake_message，验证服务器发送的数据和密钥，验证通过则握手完成</li><li>加密通信：开始使用协商密钥与算法进行加密通信</li></ol>]]></content>
-    
-    
-      
-      
-    <summary type="html">&lt;blockquote&gt;
-&lt;p&gt;证书文件格式说明：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;.key：私钥文件，通常使用rsa算法，私钥需要自己保存，无需提交给ca机构&lt;/li&gt;
-&lt;li&gt;.crt：证书文件，certificate的缩写&lt;/li&gt;
-&lt;li&gt;.csr：证书签名请求(证书请求文件)</summary>
       
     
     
