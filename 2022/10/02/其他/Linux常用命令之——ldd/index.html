@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Linux常用命令之--ldd | My Blog</title>
+  <meta name="description" content="背景ldd是用于查看可执行文件的动态链接库依赖。(也可使用pmap进行查看)Q：什么是动态链接呢？  有动态链接就有静态链接。静态链接是把依赖的第三方库函数打包到一起，其最后生成的可执行文件非常大。动态链接并不将那些库文件直接拿过来，而是在运行时，发现用到某些库中的某些函数时，再从第三方库中读取自己所需的方法。 动态链接库，linux下的后缀为so(Shared Object)，windows下的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux常用命令之--ldd">
+<meta property="og:url" content="https://zcej.github.io/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景ldd是用于查看可执行文件的动态链接库依赖。(也可使用pmap进行查看)Q：什么是动态链接呢？  有动态链接就有静态链接。静态链接是把依赖的第三方库函数打包到一起，其最后生成的可执行文件非常大。动态链接并不将那些库文件直接拿过来，而是在运行时，发现用到某些库中的某些函数时，再从第三方库中读取自己所需的方法。 动态链接库，linux下的后缀为so(Shared Object)，windows下的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-10-02T03:08:31.000Z">
+<meta property="article:modified_time" content="2023-02-05T16:51:23.520Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">19</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/" class="title">记一次oracle数据备份还原的操作</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-10-20T15:01:43.000Z" itemprop="datePublished">2022-10-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/" class="title">如何控制并发速率2.0</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-10-06T05:11:03.000Z" itemprop="datePublished">2022-10-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/" class="title">Linux常用命令之--ldd</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-10-02T03:08:31.000Z" itemprop="datePublished">2022-10-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/09/28/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94sar/" class="title">Linux常用命令之--sar</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-09-28T11:53:13.000Z" itemprop="datePublished">2022-09-28</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/django/">django</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/09/11/django/Django%20Admin%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%89%E9%92%AE%E5%8F%96%E6%B6%88%E5%BC%BA%E5%88%B6%E9%80%89%E6%8B%A9%E5%AF%B9%E8%B1%A1/" class="title">Django Admin自定义按钮取消强制选择对象</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-09-11T14:03:11.000Z" itemprop="datePublished">2022-09-11</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-其他/Linux常用命令之——ldd" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Linux常用命令之--ldd
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/" class="article-date">
+	  <time datetime="2022-10-02T03:08:31.000Z" itemprop="datePublished">2022-10-02</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>ldd是用于查看可执行文件的动态链接库依赖。(也可使用pmap进行查看)<br>Q：什么是动态链接呢？</p>
+<ul>
+<li>有动态链接就有静态链接。静态链接是把依赖的第三方库函数打包到一起，其最后生成的可执行文件非常大。动态链接并不将那些库文件直接拿过来，而是在运行时，发现用到某些库中的某些函数时，再从第三方库中读取自己所需的方法。</li>
+<li>动态链接库，linux下的后缀为so(Shared Object)，windows下的后缀为dll(Dynamic Link Libaray)。<blockquote>
+<p>注：更多动态链接相关内容可参考下述文章：<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/235551437">https://zhuanlan.zhihu.com/p/235551437</a></p>
+</blockquote>
+</li>
+</ul>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>可以使用<code>ldd</code>查看文件的动态链接依赖，如查看ls依赖的结果如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(venvStudy) [root@node1 build_so]<span class="comment"># ldd /bin/ls</span></span><br><span class="line">        linux-vdso.so.1 =&gt;  (0x00007ffef8adb000)</span><br><span class="line">        libselinux.so.1 =&gt; /lib64/libselinux.so.1 (0x00007f3809d7d000)</span><br><span class="line">        libcap.so.2 =&gt; /lib64/libcap.so.2 (0x00007f3809b78000)</span><br><span class="line">        libacl.so.1 =&gt; /lib64/libacl.so.1 (0x00007f380996f000)</span><br><span class="line">        libc.so.6 =&gt; /lib64/libc.so.6 (0x00007f38095a1000)</span><br><span class="line">        libpcre.so.1 =&gt; /lib64/libpcre.so.1 (0x00007f380933f000)</span><br><span class="line">        libdl.so.2 =&gt; /lib64/libdl.so.2 (0x00007f380913b000)</span><br><span class="line">        /lib64/ld-linux-x86-64.so.2 (0x00007f3809fa4000)</span><br><span class="line">        libattr.so.1 =&gt; /lib64/libattr.so.1 (0x00007f3808f36000)</span><br><span class="line">        libpthread.so.0 =&gt; /lib64/libpthread.so.0 (0x00007f3808d1a000)</span><br></pre></td></tr></table></figure>
+<p>通常安装某软件若是报错缺失某个依赖文件时，再结合<code>apt-file</code>查看文件所在包，然后使用<code>apt</code>进行安装。</p>
+<blockquote>
+<p>注：Ubuntu下使用<code>apt-file</code>涉及到的命令如下：</p>
+<ul>
+<li><code>apt install apt-file</code></li>
+<li><code>apt-file update</code></li>
+<li><code>apt-file search libpthread.so.0</code></li>
+</ul>
+</blockquote>
+<p>CentOS下使用命令<code>yum provides libpthread.so.0</code></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><p>在技术交流群看到其他人为了防止python代码泄露，有把python代码打包成动态链接库so的，自己不知道还可以这样操作，在此进行记录下。需要先安装<code>Cython</code>，该库是通过类似python的语法去编写c扩展并可以被python调用。其即具备了python快速开发的特点，又可以让代码运行起来像c一样快，同时还可以方便的调用c library。安装命令如下：<br><code>pip install Cython -i [https://pypi.mirrors.ustc.edu.cn/simple](https://pypi.mirrors.ustc.edu.cn/simple)</code></p>
+<h3 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h3><p>新建文件<code>hello.py</code>，该文件为被打包的目标文件：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">hello</span>(<span class="params">name</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;hello, <span class="subst">&#123;name&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>新建文件<code>setup.py</code>，该文件是调用<code>Cython</code>进行打包的文件：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> distutils.core <span class="keyword">import</span> setup</span><br><span class="line"><span class="keyword">from</span> Cython.Build <span class="keyword">import</span> cythonize</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    file_name = <span class="string">&#x27;hello.py&#x27;</span>  <span class="comment"># 文件名</span></span><br><span class="line">    build_dir = <span class="string">&#x27;&#x27;</span>  <span class="comment"># 文件目录</span></span><br><span class="line">    build_tmp_dir = <span class="string">&#x27;temp&#x27;</span>  <span class="comment"># 编译的临时文件目录</span></span><br><span class="line">    setup(ext_modules=cythonize(file_name), script_args=[<span class="string">&quot;build_ext&quot;</span>, <span class="string">&quot;-b&quot;</span>, build_dir, <span class="string">&quot;-t&quot;</span>, build_tmp_dir])</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>接下来直接执行<code>python setup.py</code>，可以看到打包编译的过程，如果没有报错的话结果输出如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">(venvStudy) [root@node1 build_so]<span class="comment"># ll</span></span><br><span class="line">total 284</span><br><span class="line">drwxr-xr-x 3 root root   4096 Oct 2 11:53 build</span><br><span class="line">-rw-r--r-- 1 root root 140877 Oct 2 11:53 hello.c</span><br><span class="line">-rwxr-xr-x 1 root root 130968 Oct 2 11:53 hello.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">-rw-r--r-- 1 root root     46 Oct 2 11:40 hello.py</span><br><span class="line">-rw-r--r-- 1 root root    428 Oct 2 11:53 setup.py</span><br><span class="line">-rw-r--r-- 1 root root     37 Oct 2 11:38 test.py</span><br></pre></td></tr></table></figure>
+<p>此时已经生成了动态链接库so文件，可以将<code>hello.py</code>删除，也可以正常调用hello，<code>build</code>目录下是生成的临时文件。到这里只是大概了解了如何将python代码打包为so文件，想要更好的工程实践见下一部分内容。</p>
+<h3 id="工程实践"><a href="#工程实践" class="headerlink" title="工程实践"></a>工程实践</h3><p>可使用下述代码进行打包，来自<code>[https://github.com/ArvinMei/py2so/blob/master/py2so.py](https://github.com/ArvinMei/py2so/blob/master/py2so.py)</code>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys, os, shutil, time</span><br><span class="line"><span class="keyword">from</span> distutils.core <span class="keyword">import</span> setup</span><br><span class="line"><span class="keyword">from</span> Cython.Build <span class="keyword">import</span> cythonize</span><br><span class="line"></span><br><span class="line">starttime = time.time()</span><br><span class="line">setupfile= os.path.join(os.path.abspath(<span class="string">&#x27;.&#x27;</span>), __file__)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">getpy</span>(<span class="params">basepath=os.path.abspath(<span class="params"><span class="string">&#x27;.&#x27;</span></span>), parentpath=<span class="string">&#x27;&#x27;</span>, name=<span class="string">&#x27;&#x27;</span>, build_dir=<span class="string">&quot;build&quot;</span>, </span></span><br><span class="line"><span class="params">          excepts=(<span class="params"></span>), copyOther=<span class="literal">False</span>, delC=<span class="literal">False</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    获取py文件的路径</span></span><br><span class="line"><span class="string">    :param basepath: 根路径</span></span><br><span class="line"><span class="string">    :param parentpath: 父路径</span></span><br><span class="line"><span class="string">    :param name: 文件/夹</span></span><br><span class="line"><span class="string">    :param excepts: 排除文件</span></span><br><span class="line"><span class="string">    :param copy: 是否copy其他文件</span></span><br><span class="line"><span class="string">    :return: py文件的迭代器</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    fullpath = os.path.join(basepath, parentpath, name)</span><br><span class="line">    <span class="keyword">for</span> fname <span class="keyword">in</span> os.listdir(fullpath):</span><br><span class="line">        ffile = os.path.join(fullpath, fname)</span><br><span class="line">        <span class="keyword">if</span> os.path.isdir(ffile) <span class="keyword">and</span> ffile != os.path.join(basepath, build_dir) <span class="keyword">and</span> <span class="keyword">not</span> fname.startswith(<span class="string">&#x27;.&#x27;</span>):</span><br><span class="line">            <span class="keyword">for</span> f <span class="keyword">in</span> getpy(basepath, os.path.join(parentpath, name), fname, build_dir, excepts, copyOther, delC):</span><br><span class="line">                <span class="keyword">yield</span> f</span><br><span class="line">        <span class="keyword">elif</span> os.path.isfile(ffile):</span><br><span class="line">            <span class="comment"># print(&quot;\t&quot;, basepath, parentpath, name, ffile)</span></span><br><span class="line">            ext = os.path.splitext(fname)[<span class="number">1</span>]</span><br><span class="line">            <span class="keyword">if</span> ext == <span class="string">&quot;.c&quot;</span>:</span><br><span class="line">                <span class="keyword">if</span> delC <span class="keyword">and</span> os.stat(ffile).st_mtime &gt; starttime:</span><br><span class="line">                    os.remove(ffile)</span><br><span class="line">            <span class="keyword">elif</span> ffile <span class="keyword">not</span> <span class="keyword">in</span> excepts <span class="keyword">and</span> ext <span class="keyword">not</span> <span class="keyword">in</span>(<span class="string">&#x27;.pyc&#x27;</span>, <span class="string">&#x27;.pyx&#x27;</span>):</span><br><span class="line">                <span class="comment"># print(&quot;\t\t&quot;, basepath, parentpath, name, ffile)</span></span><br><span class="line">                <span class="keyword">if</span> ext <span class="keyword">in</span>(<span class="string">&#x27;.py&#x27;</span>, <span class="string">&#x27;.pyx&#x27;</span>) <span class="keyword">and</span> <span class="keyword">not</span> fname.startswith(<span class="string">&#x27;__&#x27;</span>):</span><br><span class="line">                    <span class="keyword">yield</span> os.path.join(parentpath, name, fname)</span><br><span class="line">                <span class="keyword">elif</span> copyOther:</span><br><span class="line">                        dstdir = os.path.join(basepath, build_dir, parentpath, name)</span><br><span class="line">                        <span class="keyword">if</span> <span class="keyword">not</span> os.path.isdir(dstdir): os.makedirs(dstdir)</span><br><span class="line">                        shutil.copyfile(ffile, os.path.join(dstdir, fname))</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    currdir = os.path.abspath(<span class="string">&#x27;.&#x27;</span>)</span><br><span class="line">    parentpath = sys.argv[<span class="number">1</span>] <span class="keyword">if</span> <span class="built_in">len</span>(sys.argv)&gt;<span class="number">1</span> <span class="keyword">else</span> <span class="string">&quot;.&quot;</span></span><br><span class="line"></span><br><span class="line">    currdir, parentpath = os.path.split(currdir <span class="keyword">if</span> parentpath == <span class="string">&quot;.&quot;</span> <span class="keyword">else</span> os.path.abspath(parentpath))</span><br><span class="line">    build_dir = os.path.join(parentpath, <span class="string">&quot;build&quot;</span>)</span><br><span class="line">    build_tmp_dir = os.path.join(build_dir, <span class="string">&quot;temp&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;start:&quot;</span>, currdir, parentpath, build_dir)</span><br><span class="line">    os.chdir(currdir)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment">#获取py列表</span></span><br><span class="line">        module_list = <span class="built_in">list</span>(getpy(basepath=currdir,parentpath=parentpath, build_dir=build_dir, excepts=(setupfile)))</span><br><span class="line">        <span class="built_in">print</span>(module_list)</span><br><span class="line">        setup(ext_modules = cythonize(module_list),script_args=[<span class="string">&quot;build_ext&quot;</span>, <span class="string">&quot;-b&quot;</span>, build_dir, <span class="string">&quot;-t&quot;</span>, build_tmp_dir])</span><br><span class="line">        module_list = <span class="built_in">list</span>(getpy(basepath=currdir, parentpath=parentpath, build_dir=build_dir, excepts=(setupfile), copyOther=<span class="literal">True</span>))</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> ex:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;error! &quot;</span>, ex)</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;cleaning...&quot;</span>)</span><br><span class="line">        module_list = <span class="built_in">list</span>(getpy(basepath=currdir, parentpath=parentpath, build_dir=build_dir, excepts=(setupfile), delC=<span class="literal">True</span>))</span><br><span class="line">        <span class="keyword">if</span> os.path.exists(build_tmp_dir): shutil.rmtree(build_tmp_dir)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;complate! time:&quot;</span>, time.time()-starttime, <span class="string">&#x27;s&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/" title="Linux常用命令之--ldd" target="_blank" rel="external">https://zcej.github.io/2022/10/02/其他/Linux常用命令之——ldd/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/" title="如何控制并发速率2.0"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2022/09/28/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94sar/" title="Linux常用命令之--sar"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

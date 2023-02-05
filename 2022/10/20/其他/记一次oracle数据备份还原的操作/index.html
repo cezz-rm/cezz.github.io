@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>记一次oracle数据备份还原的操作 | My Blog</title>
+  <meta name="description" content="背景 oracle版本：12.2.0 目的：将一个用户的表结构和数据复制到另一个用户下(全量备份) 当前环境为虚拟机，已提前做好快照，避免中途出现问题 如果对oracle不熟，最好还是了解下用户，表空间和表之间的关系 数据备份和数据还原下仅列出主要命令，调试用到的命令见其他数据备份1. 管理员登录1sqlplus sys&#x2F;123456@orcl as sysdba; 2. 创建备份目录123sel">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记一次oracle数据备份还原的操作">
+<meta property="og:url" content="https://zcej.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景 oracle版本：12.2.0 目的：将一个用户的表结构和数据复制到另一个用户下(全量备份) 当前环境为虚拟机，已提前做好快照，避免中途出现问题 如果对oracle不熟，最好还是了解下用户，表空间和表之间的关系 数据备份和数据还原下仅列出主要命令，调试用到的命令见其他数据备份1. 管理员登录1sqlplus sys&#x2F;123456@orcl as sysdba; 2. 创建备份目录123sel">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-10-20T15:01:43.000Z">
+<meta property="article:modified_time" content="2023-02-05T16:53:01.597Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">19</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/" class="title">记一次oracle数据备份还原的操作</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-10-20T15:01:43.000Z" itemprop="datePublished">2022-10-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/" class="title">如何控制并发速率2.0</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-10-06T05:11:03.000Z" itemprop="datePublished">2022-10-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/" class="title">Linux常用命令之--ldd</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-10-02T03:08:31.000Z" itemprop="datePublished">2022-10-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/09/28/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94sar/" class="title">Linux常用命令之--sar</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-09-28T11:53:13.000Z" itemprop="datePublished">2022-09-28</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/django/">django</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/09/11/django/Django%20Admin%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%89%E9%92%AE%E5%8F%96%E6%B6%88%E5%BC%BA%E5%88%B6%E9%80%89%E6%8B%A9%E5%AF%B9%E8%B1%A1/" class="title">Django Admin自定义按钮取消强制选择对象</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-09-11T14:03:11.000Z" itemprop="datePublished">2022-09-11</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-其他/记一次oracle数据备份还原的操作" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      记一次oracle数据备份还原的操作
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/" class="article-date">
+	  <time datetime="2022-10-20T15:01:43.000Z" itemprop="datePublished">2022-10-20</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><ul>
+<li>oracle版本：12.2.0</li>
+<li>目的：将一个用户的表结构和数据复制到另一个用户下(全量备份)</li>
+<li>当前环境为虚拟机，已提前做好快照，避免中途出现问题</li>
+<li>如果对oracle不熟，最好还是了解下用户，表空间和表之间的关系</li>
+<li>数据备份和数据还原下仅列出主要命令，调试用到的命令见其他<h2 id="数据备份"><a href="#数据备份" class="headerlink" title="数据备份"></a>数据备份</h2><h4 id="1-管理员登录"><a href="#1-管理员登录" class="headerlink" title="1. 管理员登录"></a>1. 管理员登录</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlplus sys<span class="operator">/</span><span class="number">123456</span><span class="variable">@orcl</span> <span class="keyword">as</span> sysdba;</span><br></pre></td></tr></table></figure>
+<h4 id="2-创建备份目录"><a href="#2-创建备份目录" class="headerlink" title="2. 创建备份目录"></a>2. 创建备份目录</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> dba_directories;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> directory backup <span class="keyword">as</span> <span class="string">&#x27;d:\backup&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="3-赋于要导出数据表所属用户权限"><a href="#3-赋于要导出数据表所属用户权限" class="headerlink" title="3. 赋于要导出数据表所属用户权限"></a>3. 赋于要导出数据表所属用户权限</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">grant</span> read,write <span class="keyword">on</span> directory backup <span class="keyword">to</span> C##USER1;</span><br></pre></td></tr></table></figure>
+<h4 id="4-数据备份"><a href="#4-数据备份" class="headerlink" title="4. 数据备份"></a>4. 数据备份</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">expdp C##USER1<span class="operator">/</span><span class="number">123456</span><span class="variable">@orcl</span> directory<span class="operator">=</span>backup dumpfile<span class="operator">=</span>backup.dmp logfile<span class="operator">=</span>export.log</span><br></pre></td></tr></table></figure>
+数据备份并没有遇到多大的阻碍，一路执行就成功了，这里贴出导出成功的日志文件：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">;;; </span><br><span class="line">Export: Release 12.2.0.1.0 - Production on 星期一 10月 31 10:54:38 2022</span><br><span class="line"></span><br><span class="line">Copyright (c) 1982, 2017, Oracle and/or its affiliates.  All rights reserved.</span><br><span class="line">;;; </span><br><span class="line">连接到: Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production</span><br><span class="line">启动 &quot;C##LEGACY&quot;.&quot;SYS_EXPORT_SCHEMA_01&quot;:  C##LEGACY/********@orcl directory=bpdata1 dumpfile=backup.dmp logfile=export.log </span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/TABLE_DATA</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/INDEX/STATISTICS/INDEX_STATISTICS</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/STATISTICS/TABLE_STATISTICS</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/STATISTICS/MARKER</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/SYSTEM_GRANT</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/ROLE_GRANT</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/DEFAULT_ROLE</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/PRE_SCHEMA/PROCACT_SCHEMA</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/TABLE</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/COMMENT</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/IDENTITY_COLUMN</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/INDEX/INDEX</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/CONSTRAINT/CONSTRAINT</span><br><span class="line">处理对象类型 SCHEMA_EXPORT/TABLE/CONSTRAINT/REF_CONSTRAINT</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;MSC_HUA_HISTORY&quot;               14.58 GB 71276923 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;ROSHAN_CUSTOMERS_ARCHIVE&quot;      2.877 GB 20218000 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;CELL_TOWERS&quot;                   1.080 GB 16865669 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;NEW_CELL_IDS&quot;                  2.318 MB   14745 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;MSC_DATA&quot;                      124.4 KB     246 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;MCC_MNC_OPERATOR&quot;              158.0 KB    1511 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;DJANGO_ADMIN_LOG&quot;              41.49 KB     145 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;DJANGO_SESSION&quot;                21.28 KB      14 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;AUTH_USER&quot;                     10.00 KB       2 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;QUERY_TASK&quot;                    9.156 KB       1 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;AUTH_PERMISSION&quot;               8.781 KB      32 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;DJANGO_MIGRATIONS&quot;             8.437 KB      25 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;DJANGO_CONTENT_TYPE&quot;           6.257 KB       8 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;AUTH_GROUP&quot;                        0 KB       0 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;AUTH_GROUP_PERMISSIONS&quot;            0 KB       0 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;AUTH_USER_GROUPS&quot;                  0 KB       0 行</span><br><span class="line">. . 导出了 &quot;C##LEGACY&quot;.&quot;AUTH_USER_USER_PERMISSIONS&quot;        0 KB       0 行</span><br><span class="line">已成功加载/卸载了主表 &quot;C##LEGACY&quot;.&quot;SYS_EXPORT_SCHEMA_01&quot; </span><br><span class="line">******************************************************************************</span><br><span class="line">C##LEGACY.SYS_EXPORT_SCHEMA_01 的转储文件集为:</span><br><span class="line">  C:\BACKUP\BACKUP.DMP</span><br><span class="line">作业 &quot;C##LEGACY&quot;.&quot;SYS_EXPORT_SCHEMA_01&quot; 已于 星期一 10月 31 10:56:19 2022 elapsed 0 00:01:38 成功完成</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="数据还原"><a href="#数据还原" class="headerlink" title="数据还原"></a>数据还原</h2><blockquote>
+<p>注：下述sql命令均在sys账号下执行</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="1-新建表空间"><a href="#1-新建表空间" class="headerlink" title="1. 新建表空间"></a>1. 新建表空间</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span>space bp</span><br><span class="line">datafile <span class="string">&#x27;C:/backup/bp.DBF&#x27;</span></span><br><span class="line">size <span class="number">100</span>M autoextend <span class="keyword">on</span> next <span class="number">50</span>M maxsize unlimited;</span><br></pre></td></tr></table></figure>
+<h4 id="2-创建用户并赋权"><a href="#2-创建用户并赋权" class="headerlink" title="2. 创建用户并赋权"></a>2. 创建用户并赋权</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">user</span> C##USER2 </span><br><span class="line">identified <span class="keyword">by</span> &quot;123456&quot;</span><br><span class="line"><span class="keyword">default</span> tablespace bp</span><br><span class="line">profile <span class="keyword">DEFAULT</span></span><br><span class="line">ACCOUNT UNLOCK;</span><br><span class="line"></span><br><span class="line"><span class="keyword">grant</span> dba <span class="keyword">to</span> C##USER2;</span><br><span class="line"><span class="keyword">grant</span> resource <span class="keyword">to</span> C##USER2;</span><br></pre></td></tr></table></figure>
+<h4 id="3-数据还原"><a href="#3-数据还原" class="headerlink" title="3.数据还原"></a>3.数据还原</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">impdp C##USER2<span class="operator">/</span><span class="number">123456</span><span class="variable">@orcl</span> directory<span class="operator">=</span>backup dumpfile<span class="operator">=</span>backup.dmp remap_schema<span class="operator">=</span>C##LEGACY:C##WYX logfile<span class="operator">=</span>import.log</span><br></pre></td></tr></table></figure>
+<p>若已有相同的数据表(此时会报ORA-39151错误)，则添加下述参数：<br><code>table_exists_action=replace</code></p>
+<ul>
+<li>skip：跳过并处理下一个对象</li>
+<li>append：为表增加数据</li>
+<li>truncate：清空表，然后为其增加数据</li>
+<li>replace：删除已存在表，重新建表并追加数据</li>
+</ul>
+<p>本以为到此应该能够成功进行还原了，没想到报了一个数据文件无法扩展的问题，找了下资料发现oracle里一个数据文件最大为32G，故根据提示在对应的表空间新增数据文件：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span>space &quot;USERS&quot; <span class="keyword">add</span> datafile <span class="string">&#x27;C:\APP\ORACLE\ORADATA\ORCL\USERS02.DBF&#x27;</span> size <span class="number">100</span>m autoextend <span class="keyword">on</span> next <span class="number">100</span>m maxsize unlimited;</span><br></pre></td></tr></table></figure>
+<p>至此，已经能成功导入还原了：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">;;; </span><br><span class="line">Import: <span class="keyword">Release</span> <span class="number">12.2</span><span class="number">.0</span><span class="number">.1</span><span class="number">.0</span> <span class="operator">-</span> Production <span class="keyword">on</span> 星期一 <span class="number">10</span>月 <span class="number">31</span> <span class="number">18</span>:<span class="number">51</span>:<span class="number">06</span> <span class="number">2022</span></span><br><span class="line"></span><br><span class="line">Copyright (c) <span class="number">1982</span>, <span class="number">2017</span>, Oracle <span class="keyword">and</span><span class="operator">/</span><span class="keyword">or</span> its affiliates.  <span class="keyword">All</span> rights reserved.</span><br><span class="line">;;; </span><br><span class="line">连接到: Oracle Database <span class="number">12</span>c Enterprise Edition <span class="keyword">Release</span> <span class="number">12.2</span><span class="number">.0</span><span class="number">.1</span><span class="number">.0</span> <span class="operator">-</span> <span class="number">64</span>bit Production</span><br><span class="line">已成功加载<span class="operator">/</span>卸载了主表 &quot;C##LEGACY&quot;.&quot;SYS_IMPORT_FULL_01&quot; </span><br><span class="line">ORA<span class="number">-39146</span>: 方案 &quot;C##WYX2&quot; 不存在</span><br><span class="line">启动 &quot;C##LEGACY&quot;.&quot;SYS_IMPORT_FULL_01&quot;:  C##WYX<span class="comment">/********@orcl directory=bpdata1 dumpfile=backup.dmp remap_schema=C##WYX2:C##LEGACY logfile=import.log </span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/SYSTEM_GRANT</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/ROLE_GRANT</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/DEFAULT_ROLE</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/PRE_SCHEMA/PROCACT_SCHEMA</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/TABLE</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/TABLE_DATA</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;MSC_HUA_HISTORY&quot;               14.58 GB 71276923 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;ROSHAN_CUSTOMERS_ARCHIVE&quot;      2.877 GB 20218000 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;CELL_TOWERS&quot;                   1.080 GB 16865669 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;NEW_CELL_IDS&quot;                  2.318 MB   14745 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;MSC_DATA&quot;                      124.4 KB     246 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;MCC_MNC_OPERATOR&quot;              158.0 KB    1511 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;DJANGO_ADMIN_LOG&quot;              41.49 KB     145 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;DJANGO_SESSION&quot;                21.28 KB      14 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;AUTH_USER&quot;                     10.00 KB       2 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;QUERY_TASK&quot;                    9.156 KB       1 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;AUTH_PERMISSION&quot;               8.781 KB      32 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;DJANGO_MIGRATIONS&quot;             8.437 KB      25 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;DJANGO_CONTENT_TYPE&quot;           6.257 KB       8 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;AUTH_GROUP&quot;                        0 KB       0 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;AUTH_GROUP_PERMISSIONS&quot;            0 KB       0 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;AUTH_USER_GROUPS&quot;                  0 KB       0 行</span></span><br><span class="line"><span class="comment">. . 导入了 &quot;C##WYX&quot;.&quot;AUTH_USER_USER_PERMISSIONS&quot;        0 KB       0 行</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/COMMENT</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/IDENTITY_COLUMN</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/INDEX/INDEX</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/CONSTRAINT/CONSTRAINT</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/INDEX/STATISTICS/INDEX_STATISTICS</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/CONSTRAINT/REF_CONSTRAINT</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/TABLE/STATISTICS/TABLE_STATISTICS</span></span><br><span class="line"><span class="comment">处理对象类型 SCHEMA_EXPORT/STATISTICS/MARKER</span></span><br><span class="line"><span class="comment">作业 &quot;C##LEGACY&quot;.&quot;SYS_IMPORT_FULL_01&quot; 已于 星期一 10月 31 19:00:59 2022 elapsed 0 00:09:49 成功完成</span></span><br><span class="line"><span class="comment"></span></span><br></pre></td></tr></table></figure>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> dba_directories;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> dba_tablespaces;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> dba_data_files;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> dba_users;</span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span>space &quot;USERS&quot; <span class="keyword">drop</span> datafile <span class="number">23</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> T.TABLESPACE_NAME,D.FILE_NAME,D.AUTOEXTENSIBLE,D.BYTES,D.MAXBYTES,D.STATUS</span><br><span class="line"><span class="keyword">FROM</span> DBA_TABLESPACES T,DBA_DATA_FILES D</span><br><span class="line"><span class="keyword">WHERE</span> T.TABLESPACE_NAME <span class="operator">=</span>D.TABLESPACE_NAME</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> TABLESPACE_NAME,FILE_NAME;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> a.tablespace_name &quot;表空间名&quot;, </span><br><span class="line">total &quot;表空间大小&quot;, </span><br><span class="line"><span class="keyword">free</span> &quot;表空间剩余大小&quot;, </span><br><span class="line">(total <span class="operator">-</span> <span class="keyword">free</span>) &quot;表空间使用大小&quot;, </span><br><span class="line">total <span class="operator">/</span> (<span class="number">1024</span> <span class="operator">*</span> <span class="number">1024</span> <span class="operator">*</span> <span class="number">1024</span>) &quot;表空间大小(G)&quot;, </span><br><span class="line"><span class="keyword">free</span> <span class="operator">/</span> (<span class="number">1024</span> <span class="operator">*</span> <span class="number">1024</span> <span class="operator">*</span> <span class="number">1024</span>) &quot;表空间剩余大小(G)&quot;, </span><br><span class="line">(total <span class="operator">-</span> <span class="keyword">free</span>) <span class="operator">/</span> (<span class="number">1024</span> <span class="operator">*</span> <span class="number">1024</span> <span class="operator">*</span> <span class="number">1024</span>) &quot;表空间使用大小(G)&quot;, </span><br><span class="line">round((total <span class="operator">-</span> <span class="keyword">free</span>) <span class="operator">/</span> total, <span class="number">4</span>) <span class="operator">*</span> <span class="number">100</span> &quot;使用率 %&quot; </span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">SELECT</span> tablespace_name, <span class="built_in">SUM</span>(bytes) <span class="keyword">free</span> </span><br><span class="line"><span class="keyword">FROM</span> dba_free_space </span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> tablespace_name) a, </span><br><span class="line">(<span class="keyword">SELECT</span> tablespace_name, <span class="built_in">SUM</span>(bytes) total </span><br><span class="line"><span class="keyword">FROM</span> dba_data_files </span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> tablespace_name) b </span><br><span class="line"><span class="keyword">WHERE</span> a.tablespace_name <span class="operator">=</span> b.tablespace_name;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/" title="记一次oracle数据备份还原的操作" target="_blank" rel="external">https://zcej.github.io/2022/10/20/其他/记一次oracle数据备份还原的操作/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/" title="如何控制并发速率2.0"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
