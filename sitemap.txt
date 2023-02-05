@@ -39,6 +39,6 @@ https://zcej.github.io/categories/django/
 https://zcej.github.io/categories/grpc/
 https://zcej.github.io/categories/go/
 https://zcej.github.io/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/
-https://zcej.github.io/categories/%E5%85%B6%E4%BB%96/
 https://zcej.github.io/categories/python/
+https://zcej.github.io/categories/%E5%85%B6%E4%BB%96/
 https://zcej.github.io/categories/python/%E7%88%AC%E8%99%AB/
