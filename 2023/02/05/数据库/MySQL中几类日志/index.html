@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>MySQL中的几类日志 | My Blog</title>
+  <meta name="description" content="先简单对三大日志进行总结：  mysql innodb引擎使用redo log(重做日志)保证事务的持久性，使用undo log(回滚日志)保证事务的原子性 mysql的数据备份，主备，主主，主从都离不开binlog，需要依靠binlog来同步数据，保证数据的一致性  除三大日志外，还有relay log(中继日志)，slow query log(慢查询日志)，error log(错误日志等) r">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL中的几类日志">
+<meta property="og:url" content="https://zcej.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="先简单对三大日志进行总结：  mysql innodb引擎使用redo log(重做日志)保证事务的持久性，使用undo log(回滚日志)保证事务的原子性 mysql的数据备份，主备，主主，主从都离不开binlog，需要依靠binlog来同步数据，保证数据的一致性  除三大日志外，还有relay log(中继日志)，slow query log(慢查询日志)，error log(错误日志等) r">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-02-05T11:07:58.000Z">
+<meta property="article:modified_time" content="2023-05-04T10:33:29.385Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/docker/">docker</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">22</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">7</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">二月 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">一月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">十二月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/11/">十一月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/" class="title">airflow使用pip或docker compose安装</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-03-02T13:11:41.000Z" itemprop="datePublished">2023-03-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" class="title">airflow简单了解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-27T05:08:26.000Z" itemprop="datePublished">2023-02-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" class="title">go文件第一行build注释有什么作用？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-16T12:13:37.000Z" itemprop="datePublished">2023-02-16</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" class="title">MySQL中的几类日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-05T11:07:58.000Z" itemprop="datePublished">2023-02-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" class="title">使用Github Action自动化部署Hexo</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-01-15T06:22:02.000Z" itemprop="datePublished">2023-01-15</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-数据库/MySQL中几类日志" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      MySQL中的几类日志
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" class="article-date">
+	  <time datetime="2023-02-05T11:07:58.000Z" itemprop="datePublished">2023-02-05</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>先简单对三大日志进行总结：</p>
+<ul>
+<li>mysql innodb引擎使用redo log(重做日志)保证事务的持久性，使用undo log(回滚日志)保证事务的原子性</li>
+<li>mysql的数据备份，主备，主主，主从都离不开binlog，需要依靠binlog来同步数据，保证数据的一致性</li>
+</ul>
+<p>除三大日志外，还有relay log(中继日志)，slow query log(慢查询日志)，error log(错误日志等)<br><a name="gg8jJ"></a></p>
+<h2 id="redo-log"><a href="#redo-log" class="headerlink" title="redo log"></a>redo log</h2><ul>
+<li><p>作用：确保事务的持久性。redo日志记录事务执行后的状态，用来恢复未写入data file的已成功事务更新的数据。防止在发生故障的时间点，尚有脏页未写入磁盘，在重启mysql服务的时候，根据redo log进行重做，从而达到事务的持久性这一特性。</p>
+</li>
+<li><p>内容：物理格式的日志，记录的是物理数据页面的修改信息，其redo log是顺序写入其物理文件中的。<br><a name="ywJ6j"></a></p>
+<h4 id="Q：什么时候产生？"><a href="#Q：什么时候产生？" class="headerlink" title="Q：什么时候产生？"></a>Q：什么时候产生？</h4><p>在事务开始之后就产生redo log，redo log的落盘并不是随着事务的提交才写入的，而是在事务的执行过程中，便开始写入redo log文件中。<br><a name="tAnMk"></a></p>
+<h4 id="Q：什么时候释放？"><a href="#Q：什么时候释放？" class="headerlink" title="Q：什么时候释放？"></a>Q：什么时候释放？</h4><p>当对应事务的脏页写入到磁盘之后，redo log的使命也就完成了，重做日志占用的空间就可以重用(被覆盖)。<br><a name="QijLw"></a></p>
+<h4 id="Q：对应的物理文件？"><a href="#Q：对应的物理文件？" class="headerlink" title="Q：对应的物理文件？"></a>Q：对应的物理文件？</h4><p>默认情况下，对应的物理文件位于数据库的data目录下的ib_logfile1&amp;ib_logfile2<br /><code>innodb_log_group_home_dir</code>指定日志文件组所在的路径，默认为.&#x2F;<br /><code>innodb_log_files_in_group</code>指定重做日志文件组中文件的数量，默认为2<br />另外还有其他参数等<code>innodb_log_file_size</code>、<code>innodb_mirrored_log_groups</code><br><a name="H3VlT"></a></p>
+<h2 id="undo-log"><a href="#undo-log" class="headerlink" title="undo log"></a>undo log</h2></li>
+<li><p>作用：保证数据的原子性，保证了事务发生之前的数据的一个版本，可以用于回滚，同时可以提供多版本并发控制下的读(MVCC)，也即非锁定读。</p>
+</li>
+<li><p>内容：逻辑格式的日志，在执行undo的时候，仅仅是将数据从逻辑上恢复至事务之前的状态，而不是从物理页面上操作实现的，这一点是不同于redo log的。<br><a name="ARTe7"></a></p>
+<h4 id="Q：什么时候产生"><a href="#Q：什么时候产生" class="headerlink" title="Q：什么时候产生?"></a>Q：什么时候产生?</h4><p>事务开始之前，将当前的版本生成undo log，undo也会产生redo来保证undo log的可靠性。<br><a name="lXJnO"></a></p>
+<h4 id="Q：什么时候释放"><a href="#Q：什么时候释放" class="headerlink" title="Q：什么时候释放?"></a>Q：什么时候释放?</h4><p>当事务提交之后，undo log并不能立马被删除，而是放入待清理的链表，由purge线程判断是否由其他事务在使用undo段中表的上一个事务之前的版本信息，决定是否可以清理undo log的日志空间。<br><a name="hppiE"></a></p>
+<h4 id="Q：对应的物理文件？-1"><a href="#Q：对应的物理文件？-1" class="headerlink" title="Q：对应的物理文件？"></a>Q：对应的物理文件？</h4><p>mysql5.6之前，undo表空间位于共享表空间的回滚段中，共享表空间的默认名称是ibdata，位于数据文件目录中。<br />mysql5.6之后，undo表空间可以配置成独立的文件，但是提前需要在配置文件中配置，完成数据库初始化后生效且不可改变undo log文件的个数。<br />如果初始化数据库之前没有进行相关配置，那么就无法配置成独立的表空间了。<br />mysql5.7之后的独立undo表空间配置参数如下：<br /><code>innodb_undo_directory=/data/undospace/</code>存放目录<br /><code>innodb_undo_logs=128</code>回滚段为128KB<br /><code>innodb_undo_tablespaces=4</code>指定有4个undo log文件<br />若是使用共享表空间，则由<code>innodb_data_file_path</code>配置<br><a name="Is34y"></a></p>
+<h2 id="binlog"><a href="#binlog" class="headerlink" title="binlog"></a>binlog</h2></li>
+<li><p>作用：用于复制，在主从复制中，从库利用主库上的binlog进行重播，实现主从同步，保证数据的一致性。用于数据库的基于时间点的还原。</p>
+</li>
+<li><p>内容：逻辑格式的日志，可以简单认为就是执行过的事务中的sql语句。但又不完全是sql语句这么简单，而是包括了执行的sql语句反向的信息，意味着delete对应着delete本身和其反向的insert。可以使用mysqlbinlog解析binlog。<br><a name="Io3G0"></a></p>
+<h4 id="Q：什么时候产生？-1"><a href="#Q：什么时候产生？-1" class="headerlink" title="Q：什么时候产生？"></a>Q：什么时候产生？</h4><p>事务提交的时候，一次性将事务中的sql语句(一个事务可能对应多个sql语句)按照一定的格式记录到binlog中。<br><a name="VwT9y"></a></p>
+<h4 id="Q：什么时候释放？-1"><a href="#Q：什么时候释放？-1" class="headerlink" title="Q：什么时候释放？"></a>Q：什么时候释放？</h4><p>binlog默认保持时间由参数<code>expire_logs_day</code>配置，对于非活动的日志文件，在生成时间超过该配置的天数之后，会被自动删除。<br><a name="bXNjd"></a></p>
+<h4 id="Q：对应的物理文件？-2"><a href="#Q：对应的物理文件？-2" class="headerlink" title="Q：对应的物理文件？"></a>Q：对应的物理文件？</h4><p>配置的文件的路径为<code>log_bin_basename</code>，binlog日志文件按照指定大小，当日志文件达到指定大小后进行滚动更新，生成新的日志文件。对于每个binlog日志文件，通过一个统一的index文件来组织。</p>
+</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" title="MySQL中的几类日志" target="_blank" rel="external">https://zcej.github.io/2023/02/05/数据库/MySQL中几类日志/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" title="go文件第一行build注释有什么作用？"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" title="使用Github Action自动化部署Hexo"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

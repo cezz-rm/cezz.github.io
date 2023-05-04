@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>airflow简单了解 | My Blog</title>
+  <meta name="description" content="Q：airflow介绍是用于任务调度和监控的开源工具，由python编写。以DAG有向无环图的方式组建task任务流，灵活的定义任务间的依赖关系，监控任务的运行状态。强大的web UI，页面功能丰富。  任务流怎么理解，工作流程有一个明确的开始和结束，按一定的间隔运行，就可以用python定义一个dag文件。dag的定义文件，只是一个配置文件，该脚本不能用于任务之间的交叉通信，不过有一个高级特性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="airflow简单了解">
+<meta property="og:url" content="https://zcej.github.io/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Q：airflow介绍是用于任务调度和监控的开源工具，由python编写。以DAG有向无环图的方式组建task任务流，灵活的定义任务间的依赖关系，监控任务的运行状态。强大的web UI，页面功能丰富。  任务流怎么理解，工作流程有一个明确的开始和结束，按一定的间隔运行，就可以用python定义一个dag文件。dag的定义文件，只是一个配置文件，该脚本不能用于任务之间的交叉通信，不过有一个高级特性">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2023/png/21799731/1675825200916-f2709b42-ece3-4a75-a9fd-9e3c32c2c261.png#averageHue=%23f9f9f9&clientId=u33b2d1f0-1f5a-4&from=paste&id=u1a3e085b&originHeight=484&originWidth=744&originalType=url&ratio=1&rotation=0&showTitle=false&size=26158&status=done&style=none&taskId=u8dcf0862-b119-437e-9858-275619514a0&title=">
+<meta property="article:published_time" content="2023-02-27T05:08:26.000Z">
+<meta property="article:modified_time" content="2023-05-04T10:39:34.786Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.nlark.com/yuque/0/2023/png/21799731/1675825200916-f2709b42-ece3-4a75-a9fd-9e3c32c2c261.png#averageHue=%23f9f9f9&clientId=u33b2d1f0-1f5a-4&from=paste&id=u1a3e085b&originHeight=484&originWidth=744&originalType=url&ratio=1&rotation=0&showTitle=false&size=26158&status=done&style=none&taskId=u8dcf0862-b119-437e-9858-275619514a0&title=">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/docker/">docker</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">22</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">7</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">二月 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">一月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">十二月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/11/">十一月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/" class="title">airflow使用pip或docker compose安装</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-03-02T13:11:41.000Z" itemprop="datePublished">2023-03-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" class="title">airflow简单了解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-27T05:08:26.000Z" itemprop="datePublished">2023-02-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" class="title">go文件第一行build注释有什么作用？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-16T12:13:37.000Z" itemprop="datePublished">2023-02-16</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" class="title">MySQL中的几类日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-05T11:07:58.000Z" itemprop="datePublished">2023-02-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" class="title">使用Github Action自动化部署Hexo</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-01-15T06:22:02.000Z" itemprop="datePublished">2023-01-15</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-python/airflow简单了解" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      airflow简单了解
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" class="article-date">
+	  <time datetime="2023-02-27T05:08:26.000Z" itemprop="datePublished">2023-02-27</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/python/">python</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p><a name="I72P3"></a></p>
+<h3 id="Q：airflow介绍"><a href="#Q：airflow介绍" class="headerlink" title="Q：airflow介绍"></a>Q：airflow介绍</h3><p>是用于任务调度和监控的开源工具，由python编写。以DAG有向无环图的方式组建task任务流，灵活的定义任务间的依赖关系，监控任务的运行状态。强大的web UI，页面功能丰富。</p>
+<blockquote>
+<p>任务流怎么理解，工作流程有一个明确的开始和结束，按一定的间隔运行，就可以用python定义一个dag文件。<br>dag的定义文件，只是一个配置文件，该脚本不能用于任务之间的交叉通信，不过有一个高级特性解决该问题<code>XComs</code>。<br>下面是定义任务依赖关系的方法：</p>
+<ul>
+<li><code>t1.set_upstream(t2)</code></li>
+<li><code>t1.set_downstream([t2, t3])</code></li>
+<li><code>t1 &gt;&gt; [t2, t3]</code></li>
+</ul>
+</blockquote>
+<p>官方的一个简单的dag文件定义如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime, timedelta</span><br><span class="line"><span class="keyword">from</span> textwrap <span class="keyword">import</span> dedent</span><br><span class="line"></span><br><span class="line"><span class="comment"># The DAG object; we&#x27;ll need this to instantiate a DAG</span></span><br><span class="line"><span class="keyword">from</span> airflow <span class="keyword">import</span> DAG</span><br><span class="line"></span><br><span class="line"><span class="comment"># Operators; we need this to operate!</span></span><br><span class="line"><span class="keyword">from</span> airflow.operators.bash <span class="keyword">import</span> BashOperator</span><br><span class="line"><span class="keyword">with</span> DAG(</span><br><span class="line">    <span class="string">&quot;tutorial&quot;</span>,</span><br><span class="line">    <span class="comment"># These args will get passed on to each operator</span></span><br><span class="line">    <span class="comment"># You can override them on a per-task basis during operator initialization</span></span><br><span class="line">    default_args=&#123;</span><br><span class="line">        <span class="string">&quot;depends_on_past&quot;</span>: <span class="literal">False</span>,</span><br><span class="line">        <span class="string">&quot;email&quot;</span>: [<span class="string">&quot;airflow@example.com&quot;</span>],</span><br><span class="line">        <span class="string">&quot;email_on_failure&quot;</span>: <span class="literal">False</span>,</span><br><span class="line">        <span class="string">&quot;email_on_retry&quot;</span>: <span class="literal">False</span>,</span><br><span class="line">        <span class="string">&quot;retries&quot;</span>: <span class="number">1</span>,</span><br><span class="line">        <span class="string">&quot;retry_delay&quot;</span>: timedelta(minutes=<span class="number">5</span>),</span><br><span class="line">        <span class="comment"># &#x27;queue&#x27;: &#x27;bash_queue&#x27;,</span></span><br><span class="line">        <span class="comment"># &#x27;pool&#x27;: &#x27;backfill&#x27;,</span></span><br><span class="line">        <span class="comment"># &#x27;priority_weight&#x27;: 10,</span></span><br><span class="line">        <span class="comment"># &#x27;end_date&#x27;: datetime(2016, 1, 1),</span></span><br><span class="line">        <span class="comment"># &#x27;wait_for_downstream&#x27;: False,</span></span><br><span class="line">        <span class="comment"># &#x27;sla&#x27;: timedelta(hours=2),</span></span><br><span class="line">        <span class="comment"># &#x27;execution_timeout&#x27;: timedelta(seconds=300),</span></span><br><span class="line">        <span class="comment"># &#x27;on_failure_callback&#x27;: some_function,</span></span><br><span class="line">        <span class="comment"># &#x27;on_success_callback&#x27;: some_other_function,</span></span><br><span class="line">        <span class="comment"># &#x27;on_retry_callback&#x27;: another_function,</span></span><br><span class="line">        <span class="comment"># &#x27;sla_miss_callback&#x27;: yet_another_function,</span></span><br><span class="line">        <span class="comment"># &#x27;trigger_rule&#x27;: &#x27;all_success&#x27;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    description=<span class="string">&quot;A simple tutorial DAG&quot;</span>,</span><br><span class="line">    schedule=timedelta(days=<span class="number">1</span>),</span><br><span class="line">    start_date=datetime(<span class="number">2021</span>, <span class="number">1</span>, <span class="number">1</span>),</span><br><span class="line">    catchup=<span class="literal">False</span>,</span><br><span class="line">    tags=[<span class="string">&quot;example&quot;</span>],</span><br><span class="line">) <span class="keyword">as</span> dag:</span><br><span class="line"></span><br><span class="line">    <span class="comment"># t1, t2 and t3 are examples of tasks created by instantiating operators</span></span><br><span class="line">    t1 = BashOperator(</span><br><span class="line">        task_id=<span class="string">&quot;print_date&quot;</span>,</span><br><span class="line">        bash_command=<span class="string">&quot;date&quot;</span>,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    t2 = BashOperator(</span><br><span class="line">        task_id=<span class="string">&quot;sleep&quot;</span>,</span><br><span class="line">        depends_on_past=<span class="literal">False</span>,</span><br><span class="line">        bash_command=<span class="string">&quot;sleep 5&quot;</span>,</span><br><span class="line">        retries=<span class="number">3</span>,</span><br><span class="line">    )</span><br><span class="line">    t1.doc_md = dedent(</span><br><span class="line">        <span class="string">&quot;&quot;&quot;\</span></span><br><span class="line"><span class="string">    #### Task Documentation</span></span><br><span class="line"><span class="string">    You can document your task using the attributes `doc_md` (markdown),</span></span><br><span class="line"><span class="string">    `doc` (plain text), `doc_rst`, `doc_json`, `doc_yaml` which gets</span></span><br><span class="line"><span class="string">    rendered in the UI&#x27;s Task Instance Details page.</span></span><br><span class="line"><span class="string">    ![img](http://montcs.bloomu.edu/~bobmon/Semesters/2012-01/491/import%20soul.png)</span></span><br><span class="line"><span class="string">    **Image Credit:** Randall Munroe, [XKCD](https://xkcd.com/license.html)</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    dag.doc_md = __doc__  <span class="comment"># providing that you have a docstring at the beginning of the DAG; OR</span></span><br><span class="line">    dag.doc_md = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    This is a documentation placed anywhere</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>  <span class="comment"># otherwise, type it like this</span></span><br><span class="line">    templated_command = dedent(</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    &#123;% for i in range(5) %&#125;</span></span><br><span class="line"><span class="string">        echo &quot;&#123;&#123; ds &#125;&#125;&quot;</span></span><br><span class="line"><span class="string">        echo &quot;&#123;&#123; macros.ds_add(ds, 7)&#125;&#125;&quot;</span></span><br><span class="line"><span class="string">    &#123;% endfor %&#125;</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    t3 = BashOperator(</span><br><span class="line">        task_id=<span class="string">&quot;templated&quot;</span>,</span><br><span class="line">        depends_on_past=<span class="literal">False</span>,</span><br><span class="line">        bash_command=templated_command,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    t1 &gt;&gt; [t2, t3]</span><br></pre></td></tr></table></figure>
+<p><a name="Qwi1p"></a></p>
+<h3 id="Q：airflow基本功能"><a href="#Q：airflow基本功能" class="headerlink" title="Q：airflow基本功能"></a>Q：airflow基本功能</h3><ol>
+<li><p>任务调度：支持按时间计划、依赖关系或手动触发等方式调度任务。</p>
+</li>
+<li><p>任务监控：可以查看任务执行情况，如执行时间、任务状态、失败原因等。</p>
+</li>
+<li><p>依赖关系管理：支持设置任务间的依赖关系，确保任务的执行顺序。</p>
+</li>
+<li><p>数据流图：提供数据流图，方便用户清晰地查看任务间的依赖关系。</p>
+</li>
+<li><p>任务执行：支持将任务提交到不同的执行环境，如本地、云环境等。</p>
+</li>
+<li><p>高度定制：支持自定义插件，以扩展Airflow的功能。</p>
+</li>
+<li><p>权限管理：支持对用户进行权限管理，确保任务的安全性。</p>
+</li>
+<li><p>Web界面：提供易于使用的Web界面，方便用户进行任务调度、监控、配置等操作。</p>
+</li>
+<li><p>任务扩展：支持任务扩展，可以根据需求增加任务类型。</p>
+</li>
+<li><p>数据库存储：支持使用数据库存储任务信息，方便用户对任务信息进行查询和维护。</p>
+</li>
+<li><p>任务记录：支持对任务的执行情况进行详细记录，以便用户查询和分析。</p>
+</li>
+<li><p>电子邮件通知：支持对任务的执行情况进行电子邮件通知，以便用户及时了解任务执行情况。</p>
+</li>
+<li><p>多租户支持：支持多租户，可以将不同的任务隔离开来，保证各个任务的安全性和独立性。</p>
+</li>
+<li><p>可靠性：支持多种高可靠性策略，如任务重试、任务隔离等，确保任务的可靠性。</p>
+</li>
+<li><p>安全性：支持多种安全措施，如用户认证、数据加密等，确保系统的安全性。</p>
+</li>
+<li><p>故障恢复：支持故障恢复，在系统出现故障时，可以自动恢复任务的执行。</p>
+</li>
+<li><p>API支持：提供丰富的API，方便用户通过代码编程方式对任务进行操作。</p>
+</li>
+<li><p>可扩展性：提供可扩展的架构，可以根据业务需求进行扩展。</p>
+</li>
+<li><p>报表生成：支持报表生成，方便用户查询和分析任务执行情况。</p>
+</li>
+<li><p>日志管理：支持日志管理，方便用户查询和分析系统运行情况。</p>
+</li>
+<li><p>可视化管理：提供可视化的任务管理界面，方便用户对任务进行监控和管理。</p>
+</li>
+<li><p>支持多种语言：支持多种语言，如Python、Java、C++等，方便用户编写任务代码。<br><a name="v3jqJ"></a></p>
+<h3 id="Q：airflow应用场景"><a href="#Q：airflow应用场景" class="headerlink" title="Q：airflow应用场景"></a>Q：airflow应用场景</h3></li>
+<li><p>数据管道：用于编排数据管道，从数据源获取数据，并在进行数据处理、转换、存储等操作后将数据存储到目标数据库。</p>
+</li>
+<li><p>数据分析：用于编排数据分析任务，将数据从数据库中抽取，并进行数据分析、可视化等操作。</p>
+</li>
+<li><p>模型训练：用于编排模型训练任务，将数据从数据库中抽取，并使用机器学习模型进行训练。</p>
+</li>
+<li><p>定时任务：用于编排定时任务，定期执行一些固定的任务，如数据备份、定期清理等。</p>
+</li>
+<li><p>其他自动化任务：用于编排其他自动化任务，如文件转换、数据同步等。<br><a name="rz9YU"></a></p>
+<h3 id="Q：airflow有哪些组件"><a href="#Q：airflow有哪些组件" class="headerlink" title="Q：airflow有哪些组件"></a>Q：airflow有哪些组件</h3><p><img src="https://cdn.nlark.com/yuque/0/2023/png/21799731/1675825200916-f2709b42-ece3-4a75-a9fd-9e3c32c2c261.png#averageHue=%23f9f9f9&clientId=u33b2d1f0-1f5a-4&from=paste&id=u1a3e085b&originHeight=484&originWidth=744&originalType=url&ratio=1&rotation=0&showTitle=false&size=26158&status=done&style=none&taskId=u8dcf0862-b119-437e-9858-275619514a0&title=" alt="image.png"></p>
+</li>
+</ol>
+<ul>
+<li>Webserver：管理界面，可以在其中管理任务、查看任务执行状态、配置任务等。</li>
+<li>Scheduler：调度器，负责调度任务执行。</li>
+<li>Workers：执行任务的节点，负责执行任务。</li>
+<li>DAGs：任务流程，表示任务之间的依赖关系。</li>
+<li>Operators：任务执行单元，封装了一组任务执行的逻辑。</li>
+<li>Hooks：连接器，用于连接不同的任务或外部系统。</li>
+<li>Sensors：传感器，用于监测外部系统的状态。</li>
+<li>Variables：变量，存储一些全局变量，可以在任务流程中使用。</li>
+<li>XComs：交互数据，可以在任务之间传递数据。</li>
+<li>Connections：连接，用于连接不同的数据源。<br><a name="Djk1E"></a><h3 id="Q：airflow和dolphinsheduler的不同和优缺点"><a href="#Q：airflow和dolphinsheduler的不同和优缺点" class="headerlink" title="Q：airflow和dolphinsheduler的不同和优缺点"></a>Q：airflow和dolphinsheduler的不同和优缺点</h3>DolphinScheduler致力于可视化，通过页面完成一个DAG工作流。<br />Airflow则是通过编程的方式完成一个DAG工作量，定制化开发相对比较容易。</li>
+</ul>
+<p>相似点：</p>
+<ul>
+<li>两者都允许用户创建和管理复杂的工作流。</li>
+<li>两者都有基于网页的用户界面，用于查看和管理作业。</li>
+<li>两者都提供了一种自动调度和执行任务的方法。</li>
+</ul>
+<p>不同点：</p>
+<ul>
+<li>Airflow 是用 Python 编写的，具有庞大的活跃社区，而 DolphinScheduler 是用 Java 编写的，社区较小。</li>
+<li>Airflow 有丰富的内置操作符，用于处理数据，例如在系统之间传输文件的能力，并且可以使用自定义插件轻松扩展，而 DolphinScheduler 提供了一组更基本的操作符，可能需要更多的自定义才能适合特定的用例。</li>
+<li>Airflow 的监控和报警功能更强大，相比之下，DolphinScheduler 提供了基本的监控和报警功能。</li>
+<li>Airflow 具有更灵活的执行模型，允许以顺序或并行的方式执行任务，而 DolphinScheduler 主要支持顺序执行。</li>
+</ul>
+<p>Airflow 的优点：</p>
+<ul>
+<li>功能丰富：Airflow 提供了诸如 DAG 编排，任务审核，任务监控等功能，并且具有很好的扩展性，可以使用第三方插件扩展其功能。</li>
+<li>用户友好：Airflow 提供了一个简单易用的 Web 界面，方便用户进行任务管理和监控。</li>
+<li>集成性强：Airflow 在整个 DevOps 生命周期中有良好的集成性，可以方便地与各种数据存储，数据分析，机器学习等工具集成。</li>
+</ul>
+<p>Airflow 的缺点：</p>
+<ul>
+<li>部署复杂：Airflow 的部署相对比较复杂，对于新手可能有一定的学习曲线。</li>
+<li>资源消耗大：由于 Airflow 提供了大量的功能，因此对于资源的消耗也相对较大。</li>
+</ul>
+<p>DolphinScheduler 的优点：</p>
+<ul>
+<li>部署简单：DolphinScheduler 的部署相对比较简单，易于上手。</li>
+<li>资源消耗小：DolphinScheduler 对于资源的消耗相对较小，适合在资源有限的情况下使用。</li>
+<li>稳定性高：DolphinScheduler 具有较高的稳定性，可以保证任务的顺利执行。</li>
+</ul>
+<p>DolphinScheduler 的缺点：</p>
+<ul>
+<li>功能较弱：相对于 Airflow，DolphinScheduler 的功能相对较弱，可能无法满足复杂的任务管理需求。</li>
+<li>可扩展性差：DolphinScheduler 可扩展性较差，可能不支持用户希望的一些特殊功能。</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" title="airflow简单了解" target="_blank" rel="external">https://zcej.github.io/2023/02/27/python/airflow简单了解/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/" title="airflow使用pip或docker compose安装"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" title="go文件第一行build注释有什么作用？"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

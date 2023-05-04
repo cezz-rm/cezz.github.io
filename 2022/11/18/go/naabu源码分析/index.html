@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>naabu源码分析 | My Blog</title>
+  <meta name="description" content="参数解析1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374使用方法:.&#x2F;naabu-2.1.1 [flags]Flags:INPUT:-host string[]">
+<meta property="og:type" content="article">
+<meta property="og:title" content="naabu源码分析">
+<meta property="og:url" content="https://zcej.github.io/2022/11/18/go/naabu%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="参数解析1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374使用方法:.&#x2F;naabu-2.1.1 [flags]Flags:INPUT:-host string[]">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-11-18T12:06:18.000Z">
+<meta property="article:modified_time" content="2023-05-04T09:58:02.052Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/11/18/go/naabu%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/docker/">docker</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">22</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">7</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">二月 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">一月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">十二月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/11/">十一月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/" class="title">airflow使用pip或docker compose安装</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-03-02T13:11:41.000Z" itemprop="datePublished">2023-03-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" class="title">airflow简单了解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-27T05:08:26.000Z" itemprop="datePublished">2023-02-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" class="title">go文件第一行build注释有什么作用？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-16T12:13:37.000Z" itemprop="datePublished">2023-02-16</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" class="title">MySQL中的几类日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-05T11:07:58.000Z" itemprop="datePublished">2023-02-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" class="title">使用Github Action自动化部署Hexo</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-01-15T06:22:02.000Z" itemprop="datePublished">2023-01-15</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-go/naabu源码分析" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      naabu源码分析
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/11/18/go/naabu%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="article-date">
+	  <time datetime="2022-11-18T12:06:18.000Z" itemprop="datePublished">2022-11-18</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/go/">go</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/11/18/go/naabu%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p><a name="F7ypG"></a></p>
+<h2 id="参数解析"><a href="#参数解析" class="headerlink" title="参数解析"></a>参数解析</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">使用方法:</span><br><span class="line">./naabu-2.1.1 [flags]</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">INPUT:</span><br><span class="line">-host string[]              扫描目标, 支持域名或IP地址</span><br><span class="line">-list, -l string            从文件读取扫描目标 (file)</span><br><span class="line">-exclude-hosts, -eh string  排除扫描目标, 以逗号分隔</span><br><span class="line">-exclude-file, -ef string   从文件读取要排除的扫描目标 (file)</span><br><span class="line"></span><br><span class="line">PORT:</span><br><span class="line">-port, -p string            指定扫描端口 (80,443, 100-200)</span><br><span class="line">-top-ports, -tp string      默认top100 (default 100)</span><br><span class="line">-exclude-ports, -ep string  需要排除的扫描端口, 以逗号分隔</span><br><span class="line">-ports-file, -pf string     从文件读取扫描端口 (file)</span><br><span class="line">-port-threshold, -pts int   跳过主机端口扫描的端口阈值 (暂不知道作用)</span><br><span class="line">-exclude-cdn, -ec           跳过 CDN 的完整端口扫描 (只检查 80,443)</span><br><span class="line">-display-cdn, -cdn          展示正在使用的cdn</span><br><span class="line"></span><br><span class="line">RATE-LIMIT:</span><br><span class="line">-c int     general internal worker threads (default 25)</span><br><span class="line">-rate int  packets to send per second (default 1000)</span><br><span class="line"></span><br><span class="line">OUTPUT:</span><br><span class="line">-o, -output string  指定结果输出文件 (可选参数)</span><br><span class="line">-json               以json格式输出结果</span><br><span class="line">-csv                以csv格式输出结果</span><br><span class="line"></span><br><span class="line">CONFIGURATION:</span><br><span class="line">-scan-all-ips, -sa                  扫描与dns记录的所有ip</span><br><span class="line">-ip-version, -iv string[]           指定ipv4还是ipv6 - (default 4)</span><br><span class="line">-scan-type, -s string               扫描类型, 默认syn半连接 (SYN/CONNECT)</span><br><span class="line">-source-ip string                   来源IP端口 (x.x.x.x:yyy)</span><br><span class="line">-interface-list, -il                列出可用网卡和公共IP</span><br><span class="line">-interface, -i string               指定用于端口扫描的网卡</span><br><span class="line">-nmap                               直接调用namp扫描, 需注意已标位弃用 (nmap must be installed) - Deprecated</span><br><span class="line">-nmap-cli string                    对找到的结果运行nmap命令 (example: -nmap-cli <span class="string">&#x27;nmap -sV&#x27;</span>)</span><br><span class="line">-r string                           自定义域名解析 (comma separated or from file)</span><br><span class="line">-proxy string                       socks5 代理 (ip[:port] / fqdn[:port]</span><br><span class="line">-proxy-auth string                  socks5 代理认证 (username:password)</span><br><span class="line">-resume                             通过resume.cfg恢复扫描</span><br><span class="line">-stream                             流模式 (disables resume, nmap, verify, retries, shuffling, etc)</span><br><span class="line">-passive                            使用shodan的数据接口显示被动开放端口</span><br><span class="line">-irt, -input-read-timeout duration  输入超时时间 (default 3m0s)</span><br><span class="line">-no-stdin                           禁用标准处理</span><br><span class="line"></span><br><span class="line">HOST-DISCOVERY:</span><br><span class="line">-sn, -host-discovery           仅执行主机探活</span><br><span class="line">-Pn, -skip-host-discovery      跳过主机探活</span><br><span class="line">-ps, -probe-tcp-syn string[]   TCP SYN Ping (host discovery needs to be enabled)</span><br><span class="line">-pa, -probe-tcp-ack string[]   TCP ACK Ping (host discovery needs to be enabled)</span><br><span class="line">-pe, -probe-icmp-echo          ICMP <span class="built_in">echo</span> request Ping (host discovery needs to be enabled)</span><br><span class="line">-pp, -probe-icmp-timestamp     ICMP timestamp request Ping (host discovery needs to be enabled)</span><br><span class="line">-pm, -probe-icmp-address-mask  ICMP address mask request Ping (host discovery needs to be enabled)</span><br><span class="line">-arp, -arp-ping                ARP ping (host discovery needs to be enabled)</span><br><span class="line">-nd, -nd-ping                  IPv6 Neighbor Discovery (host discovery needs to be enabled)</span><br><span class="line"></span><br><span class="line">OPTIMIZATION:</span><br><span class="line">-retries int       端口扫描重试次数 (default 3)</span><br><span class="line">-<span class="built_in">timeout</span> int       超时等待时间, 单位为毫秒 (default 1000)</span><br><span class="line">-warm-up-time int  扫描阶段之间的时间 (default 2)</span><br><span class="line">-ping              进行ping探活</span><br><span class="line">-verify            使用tcp再次验证端口</span><br><span class="line"></span><br><span class="line">DEBUG:</span><br><span class="line">-health-check, -hc        run diagnostic check up</span><br><span class="line">-debug                    显示调试信息</span><br><span class="line">-verbose, -v              展示详细输出</span><br><span class="line">-no-color, -nc            在cli输出禁用着色</span><br><span class="line">-silent                   在输出中仅展示结果</span><br><span class="line">-version                  显示naabu的版本</span><br><span class="line">-stats                    显示运行扫描的状态</span><br><span class="line">-si, -stats-interval int  显示统计信息更新之间等待的秒数 (default 5)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><a name="RrwwR"></a></p>
+<h2 id="目录文件说明"><a href="#目录文件说明" class="headerlink" title="目录文件说明"></a>目录文件说明</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line">├─cmd</span><br><span class="line">    │  ├─functional-test</span><br><span class="line">    │  │  │  main.go</span><br><span class="line">    │  │  │  run.sh</span><br><span class="line">    │  │  │  testcases.txt</span><br><span class="line">    │  │  │</span><br><span class="line">    │  │  └─test-data</span><br><span class="line">    │  │      request.txt</span><br><span class="line">    │  │</span><br><span class="line">    │  ├─integration-test</span><br><span class="line">    │  │   integration-test.go</span><br><span class="line">    │  │   library.go</span><br><span class="line">    │  │</span><br><span class="line">    │  └─naabu</span><br><span class="line">    │      main.go</span><br><span class="line">    │</span><br><span class="line">    ├─internal</span><br><span class="line">    │  └─testutils</span><br><span class="line">    │      integration.go</span><br><span class="line">    │</span><br><span class="line">    └─pkg</span><br><span class="line">        ├─israce // 竞争检测</span><br><span class="line">        │   norace.go </span><br><span class="line">        │   race.go</span><br><span class="line">        │</span><br><span class="line">        ├─privileges  // 权限判定, 在windows, linux, darwin下是否具有相应的权限, syn扫描或全连接扫描</span><br><span class="line">        │   privileges.go</span><br><span class="line">        │   privileges_darwin.go</span><br><span class="line">        │   privileges_linux.go</span><br><span class="line">        │   privileges_win.go</span><br><span class="line">        │</span><br><span class="line">        ├─result</span><br><span class="line">        │   results.go  // 定义Result结构体</span><br><span class="line">        │   results_test.go</span><br><span class="line">        │</span><br><span class="line">        ├─routing  // 根据不同的操作系统选择不同的路由</span><br><span class="line">        │   router.go</span><br><span class="line">        │   router_darwin.go</span><br><span class="line">        │   router_linux.go</span><br><span class="line">        │   router_windows.go</span><br><span class="line">        │</span><br><span class="line">        ├─runner</span><br><span class="line">        │   banners.go      // 控制台输出运行信息, 网络环境, 扫描类型及网卡信息</span><br><span class="line">        │   banners_test.go</span><br><span class="line">        │   default.go      // 定义运行时的一些默认值, 如超时, 速率, 重试次数等</span><br><span class="line">        │   healthcheck.go  // 进行naabu锁依赖的环境运行检查</span><br><span class="line">        │   ips.go          // ip地址解析, 排除不在设置范围内的</span><br><span class="line">        │   ips_test.go</span><br><span class="line">        │   nmap.go         // 解析参数(nmap-cli), 并调用nmap </span><br><span class="line">        │   nmap_test.go</span><br><span class="line">        │   options.go      // 命令行参数解析到结构体对象Options</span><br><span class="line">        │   output.go       // 定义Result结构体及将结果写文件保存的相关方法</span><br><span class="line">        │   output_test.go</span><br><span class="line">        │   ports.go        // 定义常见端口, 以及解析端口的方法</span><br><span class="line">        │   ports_test.go </span><br><span class="line">        │   resume.go       // 定义结构体ResumeCfg, 以及保存/读取/删除恢复配置文件</span><br><span class="line">        │   runner.go       // 定义结构体Runner, 运行调度的核心, 还包括结果的处理等</span><br><span class="line">        │   targets.go      // 目标对象解析,添加处理等, 保存到runner结构体对象中</span><br><span class="line">        │   targets_test.go</span><br><span class="line">        │   util.go         // 主要包括host转ip方法, 以及判断os是否支持的函数</span><br><span class="line">        │   util_test.go</span><br><span class="line">        │   validate.go     // 参数校验认证</span><br><span class="line">        │   validate_test.go</span><br><span class="line">        │</span><br><span class="line">        ├─scan</span><br><span class="line">        │   arp.go          // arp报文组织发送</span><br><span class="line">        │   cdn.go          // 检查传入的IP是否为cdn</span><br><span class="line">        │   cdn_test.go</span><br><span class="line">        │   connect.go      // 建立完整的tcp连接, 用于判断端口是否开放</span><br><span class="line">        │   connect_test.go</span><br><span class="line">        │   externalip.go   // 通过公共api获取自己的ip出口地址</span><br><span class="line">        │   externalip_test.go</span><br><span class="line">        │   icmp.go         // 几种类型的icmp报文组织</span><br><span class="line">        │   ndp.go          // ndp报文类型组织</span><br><span class="line">        │   option.go       // 扫描的配置(超时时间,重试,速率,输出等配置)</span><br><span class="line">        │   ping.go         // ping报文组织及发送</span><br><span class="line">        │   ping_test.go</span><br><span class="line">        │   scan.go         // 定义scanner结构体, 另外包括各个扫描部分的调度</span><br><span class="line">        │   scan_unix.go    // 在linux下</span><br><span class="line">        │   tcpsequencer.go //  </span><br><span class="line">        │   tcpsequencer_test.go</span><br><span class="line">        │</span><br><span class="line">        └─utils</span><br><span class="line">            util.go</span><br></pre></td></tr></table></figure>
+<p><a name="EpMbF"></a></p>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>先看下项目依赖</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">require (</span><br><span class="line">	github.com/google/gopacket v1.1.19                                              // libpcap的go实现</span><br><span class="line">	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2                   // 获取一个可用于tcp的端口</span><br><span class="line">	github.com/projectdiscovery/blackrock v0.0.0-20220628111055-35616c71b2dc        // 伪随机的方式访问空间中的元素一次</span><br><span class="line">	github.com/projectdiscovery/cdncheck v0.0.4-0.20220322144854-b2d8ce308abb       // 检查给定IP是否属于已知cnd范围内</span><br><span class="line">	github.com/projectdiscovery/clistats v0.0.8                                     // 命令行统计信息展示</span><br><span class="line">	github.com/projectdiscovery/fdmax v0.0.3                                        // 动态修改最大文件描述符</span><br><span class="line">	github.com/projectdiscovery/fileutil v0.0.3                                     // 文件处理工具</span><br><span class="line">	github.com/projectdiscovery/goflags v0.1.1                                      // 命令行参数解析</span><br><span class="line">	github.com/projectdiscovery/gologger v1.1.4                                     // 日志处理</span><br><span class="line">	github.com/projectdiscovery/iputil v0.0.0-20220712175312-b9406f31cdd8           // 用于处理ips和cidr</span><br><span class="line">	github.com/projectdiscovery/networkpolicy v0.0.2-0.20220525172507-b844eafc878d  // 网络代理</span><br><span class="line">	github.com/remeh/sizedwaitgroup v1.0.0                                          // 速率控制</span><br><span class="line">	//go.uber.org/ratelimit v0.2.0 // indirect                                      // 速率控制</span><br><span class="line">	golang.org/x/net v0.1.0                                                         // go网络库的补充</span><br><span class="line">	golang.org/x/sys v0.1.0                                                         // 与操作系统低级别交互的go补充包</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><a name="LKEb4"></a></p>
+<h3 id="程序入口"><a href="#程序入口" class="headerlink" title="程序入口"></a>程序入口</h3><p><code>cmd/naabu/main.go</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="comment">// 1. 解析命令行参数或从配置文件读取</span></span><br><span class="line">	options := runner.ParseOptions()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 新建runner</span></span><br><span class="line">	naabuRunner, err := runner.NewRunner(options)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		gologger.Fatal().Msgf(<span class="string">&quot;Could not create runner: %s\n&quot;</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// 3. 读取退出信号, 优雅退出</span></span><br><span class="line">	c := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">	signal.Notify(c, os.Interrupt)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> <span class="keyword">range</span> c &#123;</span><br><span class="line">            <span class="comment">// 退出时打印结果</span></span><br><span class="line">			naabuRunner.ShowScanResultOnExit()</span><br><span class="line">			gologger.Info().Msgf(<span class="string">&quot;CTRL+C pressed: Exiting\n&quot;</span>)</span><br><span class="line">            <span class="comment">// 若是配置了恢复文件, 则进行恢复</span></span><br><span class="line">			<span class="keyword">if</span> options.ResumeCfg.ShouldSaveResume() &#123;</span><br><span class="line">				gologger.Info().Msgf(<span class="string">&quot;Creating resume file: %s\n&quot;</span>, runner.DefaultResumeFilePath())</span><br><span class="line">				err := options.ResumeCfg.SaveResumeConfig()</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					gologger.Error().Msgf(<span class="string">&quot;Couldn&#x27;t create resume file: %s\n&quot;</span>, err)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">            <span class="comment">// 退出时关闭runner</span></span><br><span class="line">			naabuRunner.Close()</span><br><span class="line">			os.Exit(<span class="number">1</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 扫描核心</span></span><br><span class="line">	err = naabuRunner.RunEnumeration()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		gologger.Fatal().Msgf(<span class="string">&quot;Could not run enumeration: %s\n&quot;</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. 完成后清除重启配置</span></span><br><span class="line">	<span class="comment">// on successful execution remove the resume file in case it exists</span></span><br><span class="line">	options.ResumeCfg.CleanupResumeConfig()</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>pkg/runner/runner.go</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *Runner)</span></span> RunEnumeration() <span class="type">error</span> &#123;</span><br><span class="line">	...</span><br><span class="line">    <span class="comment">// 1.如果支持syn半连接扫描</span></span><br><span class="line">    <span class="keyword">if</span> privileges.IsPrivileged $$ r.options.ScanType == SynScan &#123;...&#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// 2.设置了steam, 没太看懂这个有什么作用, 个人实际运行中添加了该参数会报错</span></span><br><span class="line">    <span class="keyword">if</span> r.options.Stream&#123;...&#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// 3. 设置并发控制</span></span><br><span class="line">    r.wgscan = sizedwaitgroup.New(r.options.Rate)</span><br><span class="line">    r.limiter = ratelimit.New(context.Background(), <span class="type">int64</span>(r.options.Rate), time.Second)</span><br><span class="line">	...</span><br><span class="line">    <span class="comment">// 4. 若设置了主机探活检测及判断是否支持发送原始数据包</span></span><br><span class="line">    <span class="keyword">if</span> shouldDiscoverHosts &amp;&amp; shouldUseRawPackets &#123;...&#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// 5. 选择是否为流模式和显示被动开放端口</span></span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> r.options.Stream &amp;&amp; !r.options.Passive:</span><br><span class="line">	...</span><br><span class="line">    <span class="keyword">case</span> r.options.Stream &amp;&amp; r.options.Passive:</span><br><span class="line">	...</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// 获取目标IP</span></span><br><span class="line">        targets, targetsV4, targetsv6, err := r.GetTargetIps(ipsCallback)</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// 若设置了查看进度</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 处理核心</span></span><br><span class="line">        <span class="keyword">if</span> shouldUseRawPackets &#123;</span><br><span class="line">            r.RawSocketEnumeration(ip, port)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            r.wgscan.Add()</span><br><span class="line">            <span class="keyword">go</span> r.handleHostPort(ip, port)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a name="rQqvJ"></a></p>
+<h3 id="主机探活"><a href="#主机探活" class="headerlink" title="主机探活"></a>主机探活</h3><p>探活的顺序为：</p>
+<ul>
+<li><code>Icmp Echo Request</code></li>
+<li><code>Tcmp Timestamp Reqeust</code></li>
+<li><code>Icmp Netmask Request</code></li>
+<li><code>ARP Scan</code></li>
+<li><code>Syn Probes</code></li>
+<li><code>Ack Probes</code></li>
+<li><code>IPv6 NDP</code></li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/11/18/go/naabu%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="naabu源码分析" target="_blank" rel="external">https://zcej.github.io/2022/11/18/go/naabu源码分析/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2022/12/11/docker/(%E8%BD%AC)Docker%E7%BD%91%E7%BB%9C%E5%9B%9E%E9%A1%BE/" title="(转)Docker网络回顾"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2022/11/09/go/katana%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="katana源码分析"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>(转)Docker网络回顾 | My Blog</title>
+  <meta name="description" content="出自：https:&#x2F;&#x2F;juejin.cn&#x2F;post&#x2F;7041923410649153543个人感觉作者这块总结的不错，转载下以便之后个人回顾。 Docker网络基础 docker使用Linux桥接网卡，在宿主机虚拟一个docker容器网桥（docker0），docker启动一个容器时会根据docker网桥的网段分配给容器一个IP地址，称为Container-IP，同时Docker网桥是每个容器的默">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(转)Docker网络回顾">
+<meta property="og:url" content="https://zcej.github.io/2022/12/11/docker/(%E8%BD%AC)Docker%E7%BD%91%E7%BB%9C%E5%9B%9E%E9%A1%BE/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="出自：https:&#x2F;&#x2F;juejin.cn&#x2F;post&#x2F;7041923410649153543个人感觉作者这块总结的不错，转载下以便之后个人回顾。 Docker网络基础 docker使用Linux桥接网卡，在宿主机虚拟一个docker容器网桥（docker0），docker启动一个容器时会根据docker网桥的网段分配给容器一个IP地址，称为Container-IP，同时Docker网桥是每个容器的默">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-12-11T08:30:09.000Z">
+<meta property="article:modified_time" content="2023-05-04T10:01:57.963Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/12/11/docker/(%E8%BD%AC)Docker%E7%BD%91%E7%BB%9C%E5%9B%9E%E9%A1%BE/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/docker/">docker</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">22</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">7</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">二月 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">一月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">十二月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/11/">十一月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/" class="title">airflow使用pip或docker compose安装</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-03-02T13:11:41.000Z" itemprop="datePublished">2023-03-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" class="title">airflow简单了解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-27T05:08:26.000Z" itemprop="datePublished">2023-02-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" class="title">go文件第一行build注释有什么作用？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-16T12:13:37.000Z" itemprop="datePublished">2023-02-16</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" class="title">MySQL中的几类日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-05T11:07:58.000Z" itemprop="datePublished">2023-02-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" class="title">使用Github Action自动化部署Hexo</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-01-15T06:22:02.000Z" itemprop="datePublished">2023-01-15</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-docker/(转)Docker网络回顾" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      (转)Docker网络回顾
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/12/11/docker/(%E8%BD%AC)Docker%E7%BD%91%E7%BB%9C%E5%9B%9E%E9%A1%BE/" class="article-date">
+	  <time datetime="2022-12-11T08:30:09.000Z" itemprop="datePublished">2022-12-11</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/docker/">docker</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/12/11/docker/(%E8%BD%AC)Docker%E7%BD%91%E7%BB%9C%E5%9B%9E%E9%A1%BE/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>出自：<a target="_blank" rel="noopener" href="https://juejin.cn/post/7041923410649153543">https://juejin.cn/post/7041923410649153543</a><br />个人感觉作者这块总结的不错，转载下以便之后个人回顾。<br><a name="Ta5Ub"></a></p>
+<h2 id="Docker网络基础"><a href="#Docker网络基础" class="headerlink" title="Docker网络基础"></a>Docker网络基础</h2><ul>
+<li>docker使用Linux桥接网卡，在宿主机虚拟一个docker容器网桥（docker0），docker启动一个容器时会根据docker网桥的网段分配给容器一个IP地址，称为Container-IP，同时Docker网桥是每个容器的默认网络网关。因为在同一宿主机内的容器都接入同一个网桥，这样容器之间就能够通过容器的Container-IP直接通信。</li>
+<li>docker网桥是宿主机虚拟出来的，并不是真实存在的网络设备，外部网络是无法寻址到的，这也意味着外部网络无法通过直接Container-IP访问到容器。</li>
+<li>如果容器希望外部访问能够访问到，可以通过映射容器端口到宿主主机(端口映射)，即docker run创建容器时候通过-p或-P参数来启用，访问容器的时候就通过宿主机IP:容器端口访问容器。<br><a name="cg9vl"></a><h2 id="Docker网络模式"><a href="#Docker网络模式" class="headerlink" title="Docker网络模式"></a>Docker网络模式</h2><table>
+<thead>
+<tr>
+<th><strong>Docker网络模式</strong></th>
+<th><strong>配置</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>host模式</td>
+<td>-net&#x3D;host</td>
+<td>容器和宿主机共享<code>Network namespace</code>，<br />容器将不会虚拟出自己的网卡，配置自己的IP等，而是使用宿主机的IP和端口。</td>
+</tr>
+<tr>
+<td>container模式</td>
+<td>-net&#x3D;container:Name_or_ID</td>
+<td>容器和另外一个容器共享<code>Network namespace</code>。<br />kubernetes中的pod就是多个容器共享一个Network namespace。<br />创建的容器不会创建自己的网卡，配置自己的IP，而是和<code>一个指定的容器共享IP、端口范围</code>。</td>
+</tr>
+<tr>
+<td>none模式</td>
+<td>-net&#x3D;none</td>
+<td>容器有独立的Network namespace，并没有对其进行任何网络设置，如分配veth pair和网桥连接，配置IP等。<code>该模式关闭了容器的网络功能</code>。</td>
+</tr>
+<tr>
+<td>bridge模式</td>
+<td>-net&#x3D;bridge</td>
+<td>（默认模式）。此模式会为每一个容器分配、设置IP等，并将容器连接到一个<code>docker0虚拟网桥</code>，通过<code>docker0网桥</code>以及<code>Iptable nat</code>表配置与宿主机通信。</td>
+</tr>
+<tr>
+<td>Macvlan network</td>
+<td>无</td>
+<td>容器具备Mac地址，使其显示为网络上的物理设备</td>
+</tr>
+<tr>
+<td>Overlay</td>
+<td>无</td>
+<td>（覆盖网络）：利用VXLAN实现的bridge模式</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<p><a name="N9xKv"></a></p>
+<h3 id="Bridge模式"><a href="#Bridge模式" class="headerlink" title="Bridge模式"></a>Bridge模式</h3><p>默认的网络模式。bridge模式下容器没有一个公有ip,只有宿主机可以直接访问,外部主机是不可见的,但容器通过宿主机的NAT规则后可以访问外网。<br><a name="dqVzg"></a></p>
+<h4 id="Bridge桥接模式的实现步骤"><a href="#Bridge桥接模式的实现步骤" class="headerlink" title="Bridge桥接模式的实现步骤"></a>Bridge桥接模式的实现步骤</h4><ul>
+<li>Docker Daemon利用veth pair技术，在宿主机上创建两个虚拟网络接口设备，假设为veth0 和veth1。而veth pair技术的特性可以保证无论哪一个veth接收到网络报文，都会将报文传输给另一方。</li>
+<li>Docker Daemon将veth0附加到Docker Daemon创建的docker0网桥上。保证宿主机的网络报 文可以发往veth0;</li>
+<li>Docker Daemon 将veth1添加到Docker Container所属的namespace下，并被改名为eth0。 如此一来，保证宿主机的网络报文若发往veth0则立即会被eth0接收，实现宿主机到Docker Container网络的联通性;同时也保证Docker Container单独使用eth0，实现容器网络环境的隔离性。<br><a name="pIwjt"></a><h4 id="Bridge桥接模式的缺陷"><a href="#Bridge桥接模式的缺陷" class="headerlink" title="Bridge桥接模式的缺陷"></a>Bridge桥接模式的缺陷</h4>Docker Container不具有一个公有IP，即和宿主机eth0不处于同一个网段。导致的结果是宿主机以外的世界不能直接和容器进行通信。<blockquote>
+<p>注：eth设备是成双成对出现的，一端是容器内部命名为eth0，一端是加入到网桥并命名的veth(通常命名为veth)，它们组成了一个数据传输通道，一端进一端出，veth设备连接了两个网络设备并实现了数据通信。</p>
+</blockquote>
+</li>
+</ul>
+<p><a name="ak5bQ"></a></p>
+<h3 id="Host网络模式"><a href="#Host网络模式" class="headerlink" title="Host网络模式"></a>Host网络模式</h3><ul>
+<li><p>host模式相当于Vmware中的NAT模式，与宿主机在同一个网络中，但没有独立IP地址。</p>
+</li>
+<li><p>启动容器使用host模式，容器将不会获得一个独立的Network Namespace，而是和宿主机共用一个Network Namespace。</p>
+</li>
+<li><p>容器将不会虚拟出自己的网卡，配置自己的IP等，而是使用宿主机的IP和端口。除此之外容器的其他方面，比如文件系统、进程列表等还是和宿主机隔离。</p>
+</li>
+<li><p>使用host模式的容器可以直接使用宿主机的IP地址与外界通信，容器内部的服务端口也可以使用宿主机的端口，不需要进行NAT，host最大的优势就是网络性能比较好，docker host上已经使用的端口就不能再用了，网络的隔离性不好。</p>
+</li>
+<li><p>host网络模式需要在容器创建时指定–network&#x3D;host</p>
+</li>
+<li><p>host模式是bridge桥接模式很好的补充。采用host模式的Docker Container，可以直接使用宿主机的IP地址与外界进行通信，若宿主机的eth0是一个公有IP，那么容器也拥有这个公有IP。同时容器内服务的端口也可以使用宿主机的端口，无需额外进行NAT转换。</p>
+</li>
+<li><p>host模式可以让容器共享宿主机网络栈,这样的好处是外部主机与容器直接通信,但是容器的网络缺少隔离性。<br><a name="CfS3u"></a></p>
+<h4 id="Host网络模式的缺陷"><a href="#Host网络模式的缺陷" class="headerlink" title="Host网络模式的缺陷"></a>Host网络模式的缺陷</h4><p>使用Host模式的容器不再拥有隔离、独立的网络环境。虽然可以让容器内部的服务和传统情况无差别、无改造的使用，但是由于网络隔离性的弱化，该容器会与宿主机共享竞争网络栈的使用; 另外，容器内部将不再拥有所有的端口资源，原因是部分端口资源已经被宿主机本身的服务占用，还有部分端口已经用以bridge网络模式容器的端口映射。<br><a name="Pbn8f"></a></p>
+<h3 id="Container网络模式"><a href="#Container网络模式" class="headerlink" title="Container网络模式"></a>Container网络模式</h3><p>Container网络模式没有改善容器与宿主机以外世界通信的情况(和桥接模式一样，不能连接宿主机以外的其他设备)。<br />这个模式指定新创建的容器和已经存在的一个容器共享一个Network Namespace，而不是和宿主机共享。新创建的容器不会创建自己的网卡，配置自己的IP，而是和一个指定的容器共享IP、端口范围等。 同样，两个容器除了网络方面，其他的如文件系统、进程列表等还是隔离的。两个容器的进程可以通过lo网卡设备通信。<br><a name="wHvFY"></a></p>
+<h3 id="None模式"><a href="#None模式" class="headerlink" title="None模式"></a>None模式</h3><p>使用none模式，Docker容器拥有自己的Network Namespace，但是，并不为Docker容器进行任何网络配置。Docker容器没有网卡、IP、路由等信息。需要我们自己为Docker容器添加网卡、配置IP等。<br />这种网络模式下容器只有lo回环网络，没有其他网卡。none模式可以在容器创建时通过– network&#x3D;none来指定。这种类型的网络没有办法联网，封闭的网络能很好的保证容器的安全性<br><a name="VNMC9"></a></p>
+<h2 id="网络基本用法"><a href="#网络基本用法" class="headerlink" title="网络基本用法"></a>网络基本用法</h2><p>（这部分稍作改动）。<br><a name="kX6fn"></a></p>
+<h4 id="镜像拉取与容器创建"><a href="#镜像拉取与容器创建" class="headerlink" title="镜像拉取与容器创建"></a>镜像拉取与容器创建</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 拉取镜像</span></span><br><span class="line">docker pull nginx:1.19.3-alpine</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行镜像</span></span><br><span class="line">docker run -itd -name nginx1 nginx:1.19.3-alpine</span><br></pre></td></tr></table></figure>
+<p>其创建流程如下：</p>
+</li>
+<li><p>创建一对虚拟接口&#x2F;网卡，也就是veth pair，分别放到本地主机和新容器中;</p>
+</li>
+<li><p>本地主机一端桥接到默认的 docker0 或指定网桥上，并具有一个唯一的名字，如 vetha596da4;</p>
+</li>
+<li><p>容器一端放到新容器中，并修改名字作为 eth0，这个网卡&#x2F;接口只在容器的名字空间可见;</p>
+</li>
+<li><p>从网桥可用地址段中(也就是与该bridge对应的network)获取一个空闲地址分配给容器的 eth0，并配置默认路由到桥接网卡 vetha596da4。</p>
+</li>
+<li><p>容器就可以使用 eth0 虚拟网卡来连接其他容器和其他网络。 如果不指定–network，创建的容器默认都会挂到 docker0 上，使用本地主机上 docker0 接口的 IP 作为 所有容器的默认网关。<br><a name="oF1AX"></a></p>
+<h4 id="多容器之间通讯"><a href="#多容器之间通讯" class="headerlink" title="多容器之间通讯"></a>多容器之间通讯</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd -name nginx1 nginx:1.19.3-alpine</span><br><span class="line"></span><br><span class="line">docker run -itd -name nginx2 nginx:1.19.3-alpine</span><br><span class="line"></span><br><span class="line">docker network inspect bridge</span><br><span class="line"></span><br><span class="line"><span class="comment"># 新建bridge网络, 并将一个运行中的容器连接到该网络</span></span><br><span class="line">docker network create -d bridge test-bridge</span><br><span class="line"></span><br><span class="line">docker run -itd -name nginx3 -network test-bridge nginx:1.19.3-alpine</span><br><span class="line"></span><br><span class="line">docker network inspect test-bridge</span><br><span class="line"></span><br><span class="line">docker network connect test-bridge nginx2</span><br></pre></td></tr></table></figure>
+<p><a name="YHWjm"></a></p>
+<h2 id="Docker网络命令汇总"><a href="#Docker网络命令汇总" class="headerlink" title="Docker网络命令汇总"></a>Docker网络命令汇总</h2><p>（这部分稍作改动）。<br />个人感觉这部分有哪些命令不知道的，直接<code>-h</code>看一下或者查阅官方文档是最好的。<br />如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 ~]<span class="comment"># docker network -h</span></span><br><span class="line">Flag shorthand -h has been deprecated, please use --<span class="built_in">help</span></span><br><span class="line"></span><br><span class="line">Usage:  docker network COMMAND</span><br><span class="line"></span><br><span class="line">Manage networks</span><br><span class="line"></span><br><span class="line">Commands:</span><br><span class="line">  connect     Connect a container to a network</span><br><span class="line">  create      Create a network</span><br><span class="line">  disconnect  Disconnect a container from a network</span><br><span class="line">  inspect     Display detailed information on one or more networks</span><br><span class="line">  <span class="built_in">ls</span>          List networks</span><br><span class="line">  prune       Remove all unused networks</span><br><span class="line">  <span class="built_in">rm</span>          Remove one or more networks</span><br><span class="line"></span><br><span class="line">Run <span class="string">&#x27;docker network COMMAND --help&#x27;</span> <span class="keyword">for</span> more information on a <span class="built_in">command</span>.</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/12/11/docker/(%E8%BD%AC)Docker%E7%BD%91%E7%BB%9C%E5%9B%9E%E9%A1%BE/" title="(转)Docker网络回顾" target="_blank" rel="external">https://zcej.github.io/2022/12/11/docker/(转)Docker网络回顾/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2022/12/16/%E5%85%B6%E4%BB%96/Nginx%E9%85%8D%E7%BD%AEbasic-auth/" title="Nginx配置basic-auth"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2022/11/18/go/naabu%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="naabu源码分析"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

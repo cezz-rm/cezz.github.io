@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>2022总结 | My Blog</title>
+  <meta name="description" content="工作与学习这一年比较笼统，回头来感觉做了很多又很多都没做。不过值得庆幸的是坚持整理了自己的博客，也算是学习过程的记录，虽然质量数量都比较一般，不过对比前几年感觉好多了，前几年也有断断续续的写了些，但更像草稿般，只有自己看得懂的那种。到了年底翻一翻这一年来的博客，还是颇有感慨。未来的一年也必须得坚持下去！ 工作上印象比较深的一件事是被拉去参加了护网行动，主要工作基于suricata写一些漏洞或工具">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2022总结">
+<meta property="og:url" content="https://zcej.github.io/2022/12/28/%E5%85%B6%E4%BB%96/2022%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="工作与学习这一年比较笼统，回头来感觉做了很多又很多都没做。不过值得庆幸的是坚持整理了自己的博客，也算是学习过程的记录，虽然质量数量都比较一般，不过对比前几年感觉好多了，前几年也有断断续续的写了些，但更像草稿般，只有自己看得懂的那种。到了年底翻一翻这一年来的博客，还是颇有感慨。未来的一年也必须得坚持下去！ 工作上印象比较深的一件事是被拉去参加了护网行动，主要工作基于suricata写一些漏洞或工具">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-12-28T14:47:21.000Z">
+<meta property="article:modified_time" content="2023-05-04T10:08:54.621Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2022/12/28/%E5%85%B6%E4%BB%96/2022%E6%80%BB%E7%BB%93/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/docker/">docker</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">22</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">7</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">二月 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">一月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">十二月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/11/">十一月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/" class="title">airflow使用pip或docker compose安装</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-03-02T13:11:41.000Z" itemprop="datePublished">2023-03-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" class="title">airflow简单了解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-27T05:08:26.000Z" itemprop="datePublished">2023-02-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" class="title">go文件第一行build注释有什么作用？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-16T12:13:37.000Z" itemprop="datePublished">2023-02-16</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" class="title">MySQL中的几类日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-05T11:07:58.000Z" itemprop="datePublished">2023-02-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" class="title">使用Github Action自动化部署Hexo</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-01-15T06:22:02.000Z" itemprop="datePublished">2023-01-15</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-其他/2022总结" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      2022总结
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2022/12/28/%E5%85%B6%E4%BB%96/2022%E6%80%BB%E7%BB%93/" class="article-date">
+	  <time datetime="2022-12-28T14:47:21.000Z" itemprop="datePublished">2022-12-28</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/12/28/%E5%85%B6%E4%BB%96/2022%E6%80%BB%E7%BB%93/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p><a name="LX8aK"></a></p>
+<h3 id="工作与学习"><a href="#工作与学习" class="headerlink" title="工作与学习"></a>工作与学习</h3><p>这一年比较笼统，回头来感觉做了很多又很多都没做。不过值得庆幸的是坚持整理了自己的博客，也算是学习过程的记录，虽然质量数量都比较一般，不过对比前几年感觉好多了，前几年也有断断续续的写了些，但更像草稿般，只有自己看得懂的那种。到了年底翻一翻这一年来的博客，还是颇有感慨。未来的一年也必须得坚持下去！</p>
+<p>工作上印象比较深的一件事是被拉去参加了护网行动，主要工作基于suricata写一些漏洞或工具特征的流量检测规则，还是有不小的收获，对抓包分析越来越熟了，还有初步学习了sqlmap，pocsuite3，冰蝎等之前自己没有用过的工具。不过还是要吐槽下工作那几天，当时正值夏天周末去加班的时候缺没有空调，真是热的不行。</p>
+<p>感觉自己今年最大的学习成果不是说学会了什么什么，而是学习的思维上不一样了，能够更加看透一些本质问题，快速的掌握新的东西，但是不足的地方也很多，一个是还不够深入，另一个是不同知识点之间的整合，灵活性还不够。之和结合工作和私下的学习再加强吧。<br><a name="Q0pCG"></a></p>
+<h3 id="生活"><a href="#生活" class="headerlink" title="生活"></a>生活</h3><p>今年的疫情也是断断续续，依旧是每隔三天都要做一次核酸，有一次北京的比较严重好几个区都居家办公了大概两周的时间(没记错的话是在5月的时候)，不过没想到到年底政策有所改变，已经放开了。真是来了个大转变让人猝不及防，自己也成了第一波中招的人，当时也挺无助的，没有退烧药、体温计和抗原，可以说什么都没准备好。第一时间还不知道是不是阳了，硬是顶着持续不断的头疼上了一天班，后续有舍友给了连花清瘟和抗原，真是雪中送炭，非常感谢。</p>
+<p>另外在9月的时候房子也快到期了，还出去找了一段时间的房子，最终也没有选择公司附近的，还是太贵了三千多一间还只有10平左右。最终还是续租了，虽然算下来加上交通费一个月也没便宜多少，但是想着习惯了周边环境，加上自己的东西变得越来越多了，也就懒得搬了。另外还得提一句在前几天得知另外一个合租两年多的广东室友准备退租回老家了，自己内心也是十分感慨自己未来的出路，不过走一步看一步吧。</p>
+<p>还有就是今年的世界杯印象比较深刻，在同事的带领下之前从来不看足球的我居然也完整的看了几场，或许是买了10块20块的原因，参与感十足，不过比赛确实非常精彩。</p>
+<p>最后值得一提的自从去年慢慢的入了海贼手办的坑，目前已经买了十多套海贼王的wcf，谁能想到一个小小的手办居然还挺贵，放在一起倒挺壮观的，有时候从柜子里拿出来看看盒子还挺开心。比较可惜的由于租房的空间不是很大，我只零散的拆了一两个，以后整租的时候再每天拆上一个吧，泪目。另外由于摆放不下的原因，海贼手办界的天花板popmax也暂时放弃了，不知道未来我的第一个popmax是谁。慢慢的期待后续手办作品吧，不敢想象海贼完结的那一天！<br><a name="TwbOD"></a></p>
+<h3 id="明年的计划"><a href="#明年的计划" class="headerlink" title="明年的计划"></a>明年的计划</h3><ol>
+<li>学习某些新技术的时候坚持整理总结，输出文章，每月至少3篇吧！ </li>
+<li>快速过下java，再把前端的技术点捡回来，页面上的是最直观的，便于我之后在写点什么页面吧 </li>
+<li>时间充裕的话还想学下日语，海贼火影死神龙珠妖尾可都是青春 </li>
+<li>有机会整租一个吧 </li>
+<li>健身！健身！健身！ </li>
+<li>如果允许的话我还想找个女朋友，哈哈 <blockquote>
+<p>写这个总结感觉比较零碎，感觉加上时间线会好很多，这就得平常就开始积累，而不是年底写了，立个flag吧，23年的总结加上时间线！条件允许的话再上点照片。</p>
+</blockquote>
+</li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2022/12/28/%E5%85%B6%E4%BB%96/2022%E6%80%BB%E7%BB%93/" title="2022总结" target="_blank" rel="external">https://zcej.github.io/2022/12/28/其他/2022总结/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/" title="vim和echo修改文件的区别"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2022/12/16/%E5%85%B6%E4%BB%96/Nginx%E9%85%8D%E7%BD%AEbasic-auth/" title="Nginx配置basic-auth"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

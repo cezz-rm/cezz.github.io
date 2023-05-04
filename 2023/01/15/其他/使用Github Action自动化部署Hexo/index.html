@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>使用Github Action自动化部署Hexo | My Blog</title>
+  <meta name="description" content="本文基于已经创建了hexo的基础，向github action自动化部署迈进。出于长远考虑，还是应当将blog结合CI进行完善。避免存放hexo源码的电脑重装或者更换带来的不变。下面将记录自己的部署过程。 准备工作 创建Token  为了确保由github action持续部署时，其拥有足够的权限进行hexo deploy的相关操作，需提前创建好token。登录并访问Github-&gt;头像(右">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Github Action自动化部署Hexo">
+<meta property="og:url" content="https://zcej.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文基于已经创建了hexo的基础，向github action自动化部署迈进。出于长远考虑，还是应当将blog结合CI进行完善。避免存放hexo源码的电脑重装或者更换带来的不变。下面将记录自己的部署过程。 准备工作 创建Token  为了确保由github action持续部署时，其拥有足够的权限进行hexo deploy的相关操作，需提前创建好token。登录并访问Github-&gt;头像(右">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zcej.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-1.png">
+<meta property="og:image" content="https://zcej.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-2.png">
+<meta property="og:image" content="https://zcej.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-3.png">
+<meta property="article:published_time" content="2023-01-15T06:22:02.000Z">
+<meta property="article:modified_time" content="2023-05-04T10:29:11.854Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zcej.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-1.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/docker/">docker</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">22</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">7</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">二月 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">一月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">十二月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/11/">十一月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/" class="title">airflow使用pip或docker compose安装</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-03-02T13:11:41.000Z" itemprop="datePublished">2023-03-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" class="title">airflow简单了解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-27T05:08:26.000Z" itemprop="datePublished">2023-02-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" class="title">go文件第一行build注释有什么作用？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-16T12:13:37.000Z" itemprop="datePublished">2023-02-16</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" class="title">MySQL中的几类日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-05T11:07:58.000Z" itemprop="datePublished">2023-02-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" class="title">使用Github Action自动化部署Hexo</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-01-15T06:22:02.000Z" itemprop="datePublished">2023-01-15</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-其他/使用Github Action自动化部署Hexo" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用Github Action自动化部署Hexo
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" class="article-date">
+	  <time datetime="2023-01-15T06:22:02.000Z" itemprop="datePublished">2023-01-15</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>本文基于已经创建了hexo的基础，向github action自动化部署迈进。<br />出于长远考虑，还是应当将blog结合CI进行完善。避免存放hexo源码的电脑重装或者更换带来的不变。<br />下面将记录自己的部署过程。<br><a name="pM4V2"></a></p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ol>
+<li><strong>创建Token</strong></li>
+</ol>
+<p>为了确保由<code>github action</code>持续部署时，其拥有足够的权限进行<code>hexo deploy</code>的相关操作，需提前创建好token。登录并访问<code>Github-&gt;头像(右上角)-&gt;Settings-&gt;Developer Settings-&gt;Persional access tokens-&gt;Tokens (classic)</code>，点击<code>generate new token</code>，token名和过期时间自定义，必须勾选repo和workflows。<br /><img src="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-1.png" class="" title="image.png"></p>
+<blockquote>
+<p><strong>注</strong>：创建完成的<code>access token</code>只会显示一次，切记先拷贝下来。忘了只能重新创建。</p>
+</blockquote>
+<ol start="2">
+<li><strong>创建项目</strong></li>
+</ol>
+<p>共需创建两个项目（当然也可存放与不同分支，修改workflow的配置即可）：<br />一个私有项目，用于存放hexo博客源码，以<code>**blog**</code>命名。<br />一个公有项目，用于存放静态页面，以<code>**test.github.io**</code>命名。</p>
+<ol start="3">
+<li><strong>编写workflow的配置文件</strong></li>
+</ol>
+<p>在本地hexo博客项目路径的<code>.github</code>文件新建<code>workflows</code>文件夹，再在文件夹<code>workflows</code>文件夹内新建<code>autodeploy.yml</code>文件，内容如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 当有改动推送到master分支时，启动Action</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">Auto</span> <span class="string">Depoly</span></span><br><span class="line"></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">branches:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">master</span> <span class="comment">#2020年10月后github新建仓库默认分支改为main，注意更改</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">release:</span></span><br><span class="line">    <span class="attr">types:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">published</span></span><br><span class="line"></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">deploy:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Checkout</span> <span class="string">source</span></span><br><span class="line">      <span class="attr">uses:</span> <span class="string">actions/checkout@v2</span></span><br><span class="line">      <span class="attr">with:</span></span><br><span class="line">        <span class="attr">ref:</span> <span class="string">master</span> <span class="comment">#2020年10月后github新建仓库默认分支改为main，注意更改</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Node.js</span></span><br><span class="line">      <span class="attr">uses:</span> <span class="string">actions/setup-node@v1</span></span><br><span class="line">      <span class="attr">with:</span></span><br><span class="line">        <span class="attr">node-version:</span> <span class="string">&quot;16.16&quot;</span> <span class="comment">#action使用的node版本，建议大版本和本地保持一致。可以在本地用node -v查询版本号。</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">hexo</span></span><br><span class="line">      <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">        export TZ=&#x27;Asia/Shanghai&#x27;</span></span><br><span class="line"><span class="string">        npm install hexo-cli -g</span></span><br><span class="line"><span class="string"></span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Cache</span> <span class="string">hexo</span></span><br><span class="line">      <span class="attr">uses:</span> <span class="string">actions/cache@v1</span></span><br><span class="line">      <span class="attr">id:</span> <span class="string">cache</span></span><br><span class="line">      <span class="attr">with:</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">node_modules</span></span><br><span class="line">        <span class="attr">key:</span> <span class="string">$&#123;&#123;runner.OS&#125;&#125;-$&#123;&#123;hashFiles(&#x27;**/package-lock.json&#x27;)&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">dependencies</span></span><br><span class="line">      <span class="attr">if:</span> <span class="string">steps.cache.outputs.cache-hit</span> <span class="type">!=</span> <span class="string">&#x27;true&#x27;</span></span><br><span class="line">      <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">        npm install hexo-wordcount hexo-generator-json-content hexo-generator-feed hexo-generator-sitemap hexo-generator-baidu-sitemap --save</span></span><br><span class="line"><span class="string"></span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Generate</span> <span class="string">static</span> <span class="string">files</span></span><br><span class="line">      <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">        hexo clean</span></span><br><span class="line"><span class="string">        hexo generate</span></span><br><span class="line"><span class="string"></span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Depoly</span> <span class="string">to</span> <span class="string">Github</span> <span class="string">Pages</span> <span class="comment">#此处master:master 指从本地的master分支提交到远程仓库的master分支，若远程仓库没有对应分支则新建一个。如有其他需要，可以根据自己的需求更改。</span></span><br><span class="line">      <span class="attr">env:</span></span><br><span class="line">        <span class="attr">GIT_NAME:</span> <span class="string">cezz-rm</span></span><br><span class="line">        <span class="attr">GIT_EMAIL:</span> <span class="string">$&#123;&#123;</span> <span class="string">vars.GITHUBS_EMAIL</span> <span class="string">&#125;&#125;</span></span><br><span class="line">        <span class="attr">GIT_TOKEN:</span> <span class="string">$&#123;&#123;</span> <span class="string">vars.GITHUBS_TOKEN</span> <span class="string">&#125;&#125;</span></span><br><span class="line"><span class="comment">#        REPO: github.com/cezz-rm/$&#123;&#123; env.GITHUBS_PAGENAME &#125;&#125;.github.io.git</span></span><br><span class="line">      <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">        export TZ=&#x27;Asia/Shanghai&#x27;</span></span><br><span class="line"><span class="string">        cd ./public</span></span><br><span class="line"><span class="string">        git init</span></span><br><span class="line"><span class="string">        git config --global user.name &#x27;$&#123;&#123; vars.GITHUBS_USERNAME &#125;&#125;&#x27;</span></span><br><span class="line"><span class="string">        git config --global user.email &#x27;$&#123;&#123; vars.GITHUBS_EMAIL &#125;&#125;&#x27;</span></span><br><span class="line"><span class="string">        git add .</span></span><br><span class="line"><span class="string">        git commit -m &quot;$&#123;&#123; github.event.head_commit.message &#125;&#125; $(date +&quot;%Z %Y-%m-%d %A %H:%M:%S&quot;) Updated By Github Actions&quot;</span></span><br><span class="line"><span class="string">        git push --force --quiet &quot;https://$&#123;&#123; vars.GITHUBS_USERNAME &#125;&#125;:$&#123;&#123; vars.GITHUBS_TOKEN &#125;&#125;@github.com/$&#123;&#123; vars.GITHUBS_USERNAME &#125;&#125;/$&#123;&#123; vars.GITHUBS_PAGENAME &#125;&#125;.github.io.git&quot; master:master</span></span><br><span class="line"><span class="string"></span><span class="comment">#        git push --force --quiet &quot;https://$&#123;&#123; env.TOKENUSER &#125;&#125;:$&#123;&#123; env.CODINGTOKEN &#125;&#125;@e.coding.net/$&#123;&#123; env.CODINGUSERNAME &#125;&#125;/$&#123;&#123;  env.CODINGBLOGREPO &#125;&#125;.git&quot; master:master #coding部署写法，需要的自行取消注释</span></span><br><span class="line"><span class="comment">#        git push --force --quiet &quot;https://$&#123;&#123; env.GITEEUSERNAME &#125;&#125;:$&#123;&#123; env.GITEETOKEN &#125;&#125;@gitee.com/$&#123;&#123; env.GITEEUSERNAME &#125;&#125;/$&#123;&#123; env.GITEEUSERNAME &#125;&#125;.git&quot; master:master #gitee部署写法，需要的自行取消注释</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>注：</strong>配置文件中的分支需与实际情况相对应。</p>
+</blockquote>
+<p><a name="kZn9q"></a></p>
+<h2 id="blog项目配置"><a href="#blog项目配置" class="headerlink" title="blog项目配置"></a>blog项目配置</h2><p>来到仓库下的<code>Settings-&gt;Secrets and variables-&gt;Actions</code>，切换到<code>Variables</code>， 点击<code>New repository variable</code>，新建以下四个变量：</p>
+<ul>
+<li><code>**GITHUBS_USERNAME**</code>：gihub的用户名。</li>
+<li><code>**GITHUBS_EMAIL**</code>：电子邮箱，运行失败会有邮件推送。</li>
+<li><code>**GITHUBS_PAGENAME**</code>：<code>test.github.io</code>中的<strong>test</strong>，按实际情况填写。</li>
+<li><code>**GITHUBS_TOKEN**</code>：填写准备工作中创建的token。</li>
+</ul>
+<img src="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-2.png" class="" title="image.png">
+<p><a name="Rp6NE"></a></p>
+<h2 id="test-github-io项目配置"><a href="#test-github-io项目配置" class="headerlink" title="test.github.io项目配置"></a>test.github.io项目配置</h2><p>来到仓库下的<code>Settings-&gt;Pages</code>下，进行如下相关配置，有域名可绑定域名。<br><a name="Jxkdb"></a></p>
+<h2 id="测试验证"><a href="#测试验证" class="headerlink" title="测试验证"></a>测试验证</h2><p>来到本地存放<code>blog</code>源代码的路径，创建新的文章提交。参考命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git add .</span><br><span class="line">git commit -m &quot;add new blog&quot;</span><br><span class="line">git push origin master</span><br></pre></td></tr></table></figure>
+<p>去页面上点击该仓库的<code>Actions</code>，可以看到记录了每一次的过程，点击其中一条查看如下：<br /><img src="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-3.png" class="" title="image.png"></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" title="使用Github Action自动化部署Hexo" target="_blank" rel="external">https://zcej.github.io/2023/01/15/其他/使用Github Action自动化部署Hexo/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" title="MySQL中的几类日志"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/" title="vim和echo修改文件的区别"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>vim和echo修改文件的区别 | My Blog</title>
+  <meta name="description" content="背景最近研究filebeat的时候，发现每次修改文件后输出的是文件的全量内容，与自己期望的不太一样，然后又翻看了相关的文章，快速过了下官方文档。得出一个结论，filebeat默认应该是输出的文件增量内容才对，经群里小伙伴的提示才反应过来，问题是不是出在修改文件的方式？果不其然，我个人调试的时候使用的是vim修改文件新增内容的，换成echo的方式后，达到了期望的结果。那么为什么vim不行呢？ 什么">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vim和echo修改文件的区别">
+<meta property="og:url" content="https://zcej.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="背景最近研究filebeat的时候，发现每次修改文件后输出的是文件的全量内容，与自己期望的不太一样，然后又翻看了相关的文章，快速过了下官方文档。得出一个结论，filebeat默认应该是输出的文件增量内容才对，经群里小伙伴的提示才反应过来，问题是不是出在修改文件的方式？果不其然，我个人调试的时候使用的是vim修改文件新增内容的，换成echo的方式后，达到了期望的结果。那么为什么vim不行呢？ 什么">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-01-08T02:39:11.000Z">
+<meta property="article:modified_time" content="2023-05-04T10:18:54.946Z">
+<meta property="article:author" content="CeJ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://zcej.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/zcej" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/django/">django</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/docker/">docker</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/go/">go</a><span class="category-list-count">22</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a><span class="category-list-count">4</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/grpc/">grpc</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">7</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/python/%E7%88%AC%E8%99%AB/">爬虫</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+
+    
+      
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">二月 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">一月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">十二月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/11/">十一月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">六月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/" class="title">airflow使用pip或docker compose安装</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-03-02T13:11:41.000Z" itemprop="datePublished">2023-03-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/python/">python</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/" class="title">airflow简单了解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-27T05:08:26.000Z" itemprop="datePublished">2023-02-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/go/">go</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/" class="title">go文件第一行build注释有什么作用？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-16T12:13:37.000Z" itemprop="datePublished">2023-02-16</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" class="title">MySQL中的几类日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-02-05T11:07:58.000Z" itemprop="datePublished">2023-02-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+              </p>
+              <p class="item-title">
+                <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" class="title">使用Github Action自动化部署Hexo</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2023-01-15T06:22:02.000Z" itemprop="datePublished">2023-01-15</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-其他/vim和echo修改文件的区别" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      vim和echo修改文件的区别
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-date">
+	  <time datetime="2023-01-08T02:39:11.000Z" itemprop="datePublished">2023-01-08</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%85%B6%E4%BB%96/">其他</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p><a name="cwcUK"></a></p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近研究filebeat的时候，发现每次修改文件后输出的是文件的全量内容，与自己期望的不太一样，然后又翻看了相关的文章，快速过了下官方文档。得出一个结论，filebeat默认应该是输出的文件增量内容才对，经群里小伙伴的提示才反应过来，问题是不是出在修改文件的方式？果不其然，我个人调试的时候使用的是vim修改文件新增内容的，换成echo的方式后，达到了期望的结果。那么为什么vim不行呢？<br><a name="uExVV"></a></p>
+<h2 id="什么是inode？"><a href="#什么是inode？" class="headerlink" title="什么是inode？"></a>什么是inode？</h2><p>每个文件有一个inode标识，操作系统通过inode的号码来识别不同的文件。unix&#x2F;linux系统内部不使用文件名来识别文件，文件名只是inode号码便于识别的别称。表面上，用户通过文件名打开文件，而实际系统内部将这个过程分为三步：</p>
+<ol>
+<li>首先找到这个文件名对应的inode号码</li>
+<li>其次通过inode号码获取inode信息</li>
+<li>最后根据inode信息，找到文件数据所在的block，读出数据</li>
+</ol>
+<p>查看文件的inode信息可以使用下述命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">(venvStudy) [root@node1 filebeat-8.5.2-linux-x86_64]<span class="comment"># stat test.json</span></span><br><span class="line">  File: ‘test.json’</span><br><span class="line">  Size: 963             Blocks: 8          IO Block: 4096   regular file</span><br><span class="line">Device: fd01h/64769d    Inode: 1845136     Links: 1</span><br><span class="line">Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)</span><br><span class="line">Access: 2022-11-14 21:28:48.542300958 +0800</span><br><span class="line">Modify: 2022-11-14 21:28:48.542300958 +0800</span><br><span class="line">Change: 2022-11-14 21:28:48.546301002 +0800</span><br><span class="line"> Birth: -</span><br></pre></td></tr></table></figure>
+<p><strong>猜测使用vim应该是修改inode，而使用echo则不会。</strong><br><a name="nC6LZ"></a></p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>使用vim修改文件内容后，查看文件的inode如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(venvStudy) [root@node1 filebeat-8.5.2-linux-x86_64]<span class="comment"># vim test.json</span></span><br><span class="line">(venvStudy) [root@node1 filebeat-8.5.2-linux-x86_64]<span class="comment"># stat test.json</span></span><br><span class="line">  File: ‘test.json’</span><br><span class="line">  Size: 882             Blocks: 8          IO Block: 4096   regular file</span><br><span class="line">Device: fd01h/64769d    Inode: 1845742     Links: 1</span><br><span class="line">Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)</span><br><span class="line">Access: 2022-11-14 21:35:14.155696874 +0800</span><br><span class="line">Modify: 2022-11-14 21:35:14.155696874 +0800</span><br><span class="line">Change: 2022-11-14 21:35:14.167697004 +0800</span><br><span class="line"> Birth: -</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>而使用echo修改文件内容后，查看文件的inode如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(venvStudy) [root@node1 filebeat-8.5.2-linux-x86_64]<span class="comment"># echo &#x27;xxxxx&#x27; &gt;&gt; ./test.json</span></span><br><span class="line">(venvStudy) [root@node1 filebeat-8.5.2-linux-x86_64]<span class="comment"># stat test.json</span></span><br><span class="line">  File: ‘test.json’</span><br><span class="line">  Size: 963             Blocks: 8          IO Block: 4096   regular file</span><br><span class="line">Device: fd01h/64769d    Inode: 1845742     Links: 1</span><br><span class="line">Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)</span><br><span class="line">Access: 2022-11-14 21:35:14.155696874 +0800</span><br><span class="line">Modify: 2022-11-14 21:37:20.004064506 +0800</span><br><span class="line">Change: 2022-11-14 21:37:20.004064506 +0800</span><br><span class="line"> Birth: -</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>确实发现使用vim的话，inode改变了。使用echo则inode保持不变。<br><a name="nSQUb"></a></p>
+<h2 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h2><p>通过<code>inotifywait</code>监控一下文件的变化，该命令位于<code>inotify-tools</code>下，需要单独安装。<br />源码编译安装的涉及到的命令如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget http://github.com/downloads/rvoicilas/inotify-tools/inotify-tools-3.14.tar.gz</span><br><span class="line">tar zxvf inotify-tools-3.14.tar.gz</span><br><span class="line"><span class="built_in">cd</span> inotify-tools-3.14</span><br><span class="line">./configure</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+<p>其他安装方式见官方文档：<a target="_blank" rel="noopener" href="https://github.com/rvoicilas/inotify-tools/wiki#wiki-getting">https://github.com/rvoicilas/inotify-tools/wiki#wiki-getting</a><br />参数说明：</p>
+<ul>
+<li>-m：持续监视变化</li>
+<li>-r：使用递归形式监视目录</li>
+<li>-q：减少冗余信息，只打印出需要的信息</li>
+<li>-e：指定要监视的事件列表</li>
+<li>–timefmt：指定时间的输出格式</li>
+<li>–format：指定文件变化的详细信息</li>
+</ul>
+<p><strong>当使用vim修改文件内容时，inotifywait的输出如下：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 filebeat-8.5.2-linux-x86_64]<span class="comment"># inotifywait -rm ./test.json</span></span><br><span class="line">Setting up watches.  Beware: since -r was given, this may take a <span class="keyword">while</span>!</span><br><span class="line">Watches established.</span><br><span class="line">./test.json OPEN</span><br><span class="line">./test.json ACCESS</span><br><span class="line">./test.json CLOSE_NOWRITE,CLOSE</span><br><span class="line">./test.json MOVE_SELF</span><br><span class="line">./test.json ATTRIB</span><br><span class="line">./test.json DELETE_SELF</span><br></pre></td></tr></table></figure>
+<p>发现最后有<code>DELETE_SELF</code>的操作，此时再修改文件内容时，已经无法监听到了，需要重新监听。<br /><strong>当使用echo修改文件内容时：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 filebeat-8.5.2-linux-x86_64]<span class="comment"># inotifywait -rm ./test.json</span></span><br><span class="line">Setting up watches.  Beware: since -r was given, this may take a <span class="keyword">while</span>!</span><br><span class="line">Watches established.</span><br><span class="line">./test.json OPEN</span><br><span class="line">./test.json MODIFY</span><br><span class="line">./test.json CLOSE_WRITE,CLOSE</span><br></pre></td></tr></table></figure>
+<p>echo只是对文件进行了修改<br /><strong>另外可以监听整个目录的变化，能看到更多信息：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用vim修改发生的变化</span></span><br><span class="line">[root@node1 filebeat-8.5.2-linux-x86_64]<span class="comment"># inotifywait -rm ./</span></span><br><span class="line">Setting up watches.  Beware: since -r was given, this may take a <span class="keyword">while</span>!</span><br><span class="line">Watches established.</span><br><span class="line">./ OPEN test.json</span><br><span class="line">./ CREATE .test.json.swp</span><br><span class="line">./ OPEN .test.json.swp</span><br><span class="line">./ CREATE .test.json.swx</span><br><span class="line">./ OPEN .test.json.swx</span><br><span class="line">./ CLOSE_WRITE,CLOSE .test.json.swx</span><br><span class="line">./ DELETE .test.json.swx</span><br><span class="line">./ CLOSE_WRITE,CLOSE .test.json.swp</span><br><span class="line">./ DELETE .test.json.swp</span><br><span class="line">./ CREATE .test.json.swp</span><br><span class="line">./ OPEN .test.json.swp</span><br><span class="line">./ MODIFY .test.json.swp</span><br><span class="line">./ ATTRIB .test.json.swp</span><br><span class="line">./ CLOSE_NOWRITE,CLOSE test.json</span><br><span class="line">./ OPEN test.json</span><br><span class="line">./ ACCESS test.json</span><br><span class="line">./ CLOSE_NOWRITE,CLOSE test.json</span><br><span class="line">./ OPEN,ISDIR</span><br><span class="line">./ CLOSE_NOWRITE,CLOSE,ISDIR</span><br><span class="line">./ OPEN,ISDIR</span><br><span class="line">./ CLOSE_NOWRITE,CLOSE,ISDIR</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 打开文件会看到上述信息, 修改内容并保存时输出下面的内容</span></span><br><span class="line">./ CREATE 4913</span><br><span class="line">./ OPEN 4913</span><br><span class="line">./ ATTRIB 4913</span><br><span class="line">./ CLOSE_WRITE,CLOSE 4913</span><br><span class="line">./ DELETE 4913</span><br><span class="line">./ MOVED_FROM test.json</span><br><span class="line">./ MOVED_TO test.json~</span><br><span class="line">./ MODIFY .test.json.swp</span><br><span class="line">./ CREATE test.json</span><br><span class="line">./ OPEN test.json</span><br><span class="line">./ MODIFY test.json</span><br><span class="line">./ CLOSE_WRITE,CLOSE test.json</span><br><span class="line">./ ATTRIB test.json</span><br><span class="line">./ MODIFY .test.json.swp</span><br><span class="line">./ DELETE test.json~</span><br></pre></td></tr></table></figure>
+<p>发现保存的时候执行了<code>MOVED_TO test.json~</code>，并新建了一个<code>test.json</code>文件。</p>
+<p><strong>有没有什么方式使用vim但是也不会修改inode呢？</strong><br />有两种方式：</p>
+<ul>
+<li><p>和文件权限有关：<code>chmod o+w test.json</code> </p>
+</li>
+<li><p>修改vim设置，关闭其备份：<code>set nobackup nowritebackup</code>，关闭后保存时不会生成<code>test.json~</code>文件<br><a name="HWEgC"></a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2></li>
+<li><p>vim修改是产生了新的文件，inode发送了改变，而echo不会。</p>
+</li>
+<li><p>vim保存时会产生带~后缀的文件，这个文件是保存时生成，正常保存该文件会被立即删除</p>
+</li>
+<li><p>若文件其他用户有write权限(<code>chmod o+w xxx</code>)，vim编辑时inode不会发生改变</p>
+</li>
+<li><p>关闭vim备份时，inode信息也不会发生改变</p>
+</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://zcej.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/" title="vim和echo修改文件的区别" target="_blank" rel="external">https://zcej.github.io/2023/01/08/其他/vim和echo修改文件的区别/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <div>个人简介</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" title="使用Github Action自动化部署Hexo"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2022/12/28/%E5%85%B6%E4%BB%96/2022%E6%80%BB%E7%BB%93/" title="2022总结"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
