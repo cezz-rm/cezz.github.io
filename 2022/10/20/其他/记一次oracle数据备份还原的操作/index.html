@@ -21,7 +21,7 @@
   <meta name="description" content="背景 oracle版本：12.2.0 目的：将一个用户的表结构和数据复制到另一个用户下(全量备份) 当前环境为虚拟机，已提前做好快照，避免中途出现问题 如果对oracle不熟，最好还是了解下用户，表空间和表之间的关系 数据备份和数据还原下仅列出主要命令，调试用到的命令见其他数据备份1. 管理员登录1sqlplus sys&#x2F;123456@orcl as sysdba; 2. 创建备份目录123sel">
 <meta property="og:type" content="article">
 <meta property="og:title" content="记一次oracle数据备份还原的操作">
-<meta property="og:url" content="https://zcej.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/index.html">
+<meta property="og:url" content="https://cezz.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="背景 oracle版本：12.2.0 目的：将一个用户的表结构和数据复制到另一个用户下(全量备份) 当前环境为虚拟机，已提前做好快照，避免中途出现问题 如果对oracle不熟，最好还是了解下用户，表空间和表之间的关系 数据备份和数据还原下仅列出主要命令，调试用到的命令见其他数据备份1. 管理员登录1sqlplus sys&#x2F;123456@orcl as sysdba; 2. 创建备份目录123sel">
 <meta property="og:locale" content="zh_CN">
@@ -30,7 +30,7 @@
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://zcej.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/index.html">
+  <link rel="canonical" href="https://cezz.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/index.html">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -54,12 +54,12 @@
       
       
       <div class="profile-block text-center">
-        <a id="avatar" href="https://github.com/zcej" target="_blank">
+        <a id="avatar" href="https://github.com/cezz-rm" target="_blank">
           <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
         </a>
         <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
         <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
-        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ChengDu, China</small>
       </div>
       
       <div class="search" id="search-form-wrap">
@@ -182,7 +182,7 @@
 	
     <ul class="social-links">
     	
-        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        <li><a href="https://github.com/cezz-rm" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
@@ -401,7 +401,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://zcej.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/" title="记一次oracle数据备份还原的操作" target="_blank" rel="external">https://zcej.github.io/2022/10/20/其他/记一次oracle数据备份还原的操作/</a>
+      <a href="https://cezz.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/" title="记一次oracle数据备份还原的操作" target="_blank" rel="external">https://cezz.github.io/2022/10/20/其他/记一次oracle数据备份还原的操作/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -415,12 +415,12 @@
   <div class="panel-body">
     <figure class="media">
       <div class="media-left">
-        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+        <a href="https://github.com/cezz-rm" target="_blank" class="img-burn thumb-sm visible-lg">
           <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
         </a>
       </div>
       <div class="media-body">
-        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <h3 class="media-heading"><a href="https://github.com/cezz-rm" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
         <div>个人简介</div>
       </div>
     </figure>
@@ -526,7 +526,7 @@
 	
     <ul class="social-links">
     	
-        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        <li><a href="https://github.com/cezz-rm" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         

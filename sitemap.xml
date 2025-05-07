@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://zcej.github.io/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/</loc>
+    <loc>https://cezz.github.io/2023/03/02/python/airflow%E4%BD%BF%E7%94%A8pip%E6%88%96docker%20compose%E5%AE%89%E8%A3%85/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -11,7 +11,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/</loc>
+    <loc>https://cezz.github.io/2023/02/27/python/airflow%E7%AE%80%E5%8D%95%E4%BA%86%E8%A7%A3/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -20,7 +20,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/</loc>
+    <loc>https://cezz.github.io/2023/02/16/go/go%E6%96%87%E4%BB%B6%E7%AC%AC%E4%B8%80%E8%A1%8Cbuild%E6%B3%A8%E9%87%8A%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -29,7 +29,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/</loc>
+    <loc>https://cezz.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -38,7 +38,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/</loc>
+    <loc>https://cezz.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -47,7 +47,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/</loc>
+    <loc>https://cezz.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -56,7 +56,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/05/23/%E5%85%B6%E4%BB%96/hexo+github%20page%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/</loc>
+    <loc>https://cezz.github.io/2022/05/23/%E5%85%B6%E4%BB%96/hexo+github%20page%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -65,7 +65,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/12/28/%E5%85%B6%E4%BB%96/2022%E6%80%BB%E7%BB%93/</loc>
+    <loc>https://cezz.github.io/2022/12/28/%E5%85%B6%E4%BB%96/2022%E6%80%BB%E7%BB%93/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -74,7 +74,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/12/16/%E5%85%B6%E4%BB%96/Nginx%E9%85%8D%E7%BD%AEbasic-auth/</loc>
+    <loc>https://cezz.github.io/2022/12/16/%E5%85%B6%E4%BB%96/Nginx%E9%85%8D%E7%BD%AEbasic-auth/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -83,7 +83,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/12/11/docker/(%E8%BD%AC)Docker%E7%BD%91%E7%BB%9C%E5%9B%9E%E9%A1%BE/</loc>
+    <loc>https://cezz.github.io/2022/12/11/docker/(%E8%BD%AC)Docker%E7%BD%91%E7%BB%9C%E5%9B%9E%E9%A1%BE/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -92,7 +92,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/11/18/go/naabu%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</loc>
+    <loc>https://cezz.github.io/2022/11/18/go/naabu%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -101,7 +101,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/11/09/go/katana%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</loc>
+    <loc>https://cezz.github.io/2022/11/09/go/katana%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</loc>
     
     <lastmod>2023-05-04</lastmod>
     
@@ -110,7 +110,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/</loc>
+    <loc>https://cezz.github.io/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/</loc>
     
     <lastmod>2023-02-05</lastmod>
     
@@ -119,7 +119,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/</loc>
+    <loc>https://cezz.github.io/2022/10/20/%E5%85%B6%E4%BB%96/%E8%AE%B0%E4%B8%80%E6%AC%A1oracle%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E8%BF%98%E5%8E%9F%E7%9A%84%E6%93%8D%E4%BD%9C/</loc>
     
     <lastmod>2023-02-05</lastmod>
     
@@ -128,7 +128,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/</loc>
+    <loc>https://cezz.github.io/2022/10/02/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94ldd/</loc>
     
     <lastmod>2023-02-05</lastmod>
     
@@ -137,7 +137,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/09/28/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94sar/</loc>
+    <loc>https://cezz.github.io/2022/09/28/%E5%85%B6%E4%BB%96/Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E2%80%94%E2%80%94sar/</loc>
     
     <lastmod>2023-02-05</lastmod>
     
@@ -146,7 +146,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/09/11/django/Django%20Admin%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%89%E9%92%AE%E5%8F%96%E6%B6%88%E5%BC%BA%E5%88%B6%E9%80%89%E6%8B%A9%E5%AF%B9%E8%B1%A1/</loc>
+    <loc>https://cezz.github.io/2022/09/11/django/Django%20Admin%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%89%E9%92%AE%E5%8F%96%E6%B6%88%E5%BC%BA%E5%88%B6%E9%80%89%E6%8B%A9%E5%AF%B9%E8%B1%A1/</loc>
     
     <lastmod>2023-02-05</lastmod>
     
@@ -155,7 +155,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/09/03/django/Django%E9%9D%99%E6%80%81%E6%96%87%E4%BB%B6404/</loc>
+    <loc>https://cezz.github.io/2022/09/03/django/Django%E9%9D%99%E6%80%81%E6%96%87%E4%BB%B6404/</loc>
     
     <lastmod>2023-01-30</lastmod>
     
@@ -164,7 +164,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/08/30/django/Django%E4%B8%ADQuerySet%E7%9A%84%E4%B8%A4%E5%A4%A7%E7%89%B9%E6%80%A7/</loc>
+    <loc>https://cezz.github.io/2022/08/30/django/Django%E4%B8%ADQuerySet%E7%9A%84%E4%B8%A4%E5%A4%A7%E7%89%B9%E6%80%A7/</loc>
     
     <lastmod>2023-01-30</lastmod>
     
@@ -173,7 +173,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/08/14/%E5%85%B6%E4%BB%96/SSL_TLS%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9%E6%A2%B3%E7%90%86/</loc>
+    <loc>https://cezz.github.io/2022/08/14/%E5%85%B6%E4%BB%96/SSL_TLS%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9%E6%A2%B3%E7%90%86/</loc>
     
     <lastmod>2023-01-29</lastmod>
     
@@ -182,7 +182,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/about/index.html</loc>
+    <loc>https://cezz.github.io/about/index.html</loc>
     
     <lastmod>2022-10-10</lastmod>
     
@@ -191,7 +191,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/</loc>
+    <loc>https://cezz.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/</loc>
     
     <lastmod>2022-10-10</lastmod>
     
@@ -200,7 +200,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/08/06/grpc/%E4%BB%80%E4%B9%88%E6%98%AFgRPC%EF%BC%8C%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E4%B8%8B%E4%BD%BF%E7%94%A8%EF%BC%9F/</loc>
+    <loc>https://cezz.github.io/2022/08/06/grpc/%E4%BB%80%E4%B9%88%E6%98%AFgRPC%EF%BC%8C%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E4%B8%8B%E4%BD%BF%E7%94%A8%EF%BC%9F/</loc>
     
     <lastmod>2022-10-10</lastmod>
     
@@ -209,7 +209,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/07/02/python/%E8%AE%A9%E9%82%AE%E4%BB%B6%E5%8F%98%E5%BE%97%E7%AE%80%E5%8D%95-zmail/</loc>
+    <loc>https://cezz.github.io/2022/07/02/python/%E8%AE%A9%E9%82%AE%E4%BB%B6%E5%8F%98%E5%BE%97%E7%AE%80%E5%8D%95-zmail/</loc>
     
     <lastmod>2022-07-10</lastmod>
     
@@ -218,7 +218,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/</loc>
+    <loc>https://cezz.github.io/2021/12/26/go/channel%E5%88%B0%E5%BA%95%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E6%89%8B%E5%8A%A8%E5%85%B3%E9%97%AD%EF%BC%9F/</loc>
     
     <lastmod>2022-07-10</lastmod>
     
@@ -227,7 +227,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/</loc>
+    <loc>https://cezz.github.io/2022/06/13/%E7%88%AC%E8%99%AB/%E7%88%AC%E5%8F%96github%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C/</loc>
     
     <lastmod>2022-07-10</lastmod>
     
@@ -236,7 +236,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/06/08/%E7%88%AC%E8%99%AB/BeautifulSoup4%E8%A7%A3%E6%9E%90/</loc>
+    <loc>https://cezz.github.io/2022/06/08/%E7%88%AC%E8%99%AB/BeautifulSoup4%E8%A7%A3%E6%9E%90/</loc>
     
     <lastmod>2022-07-03</lastmod>
     
@@ -245,7 +245,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2020/07/26/python/python%E5%8D%8F%E7%A8%8B%E7%9A%84%E7%9B%B8%E5%85%B3%E6%80%BB%E7%BB%93/</loc>
+    <loc>https://cezz.github.io/2020/07/26/python/python%E5%8D%8F%E7%A8%8B%E7%9A%84%E7%9B%B8%E5%85%B3%E6%80%BB%E7%BB%93/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -254,7 +254,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2020/08/16/django/%E5%9C%A8Django%E4%B8%AD%E4%BD%BF%E7%94%A8%E7%BC%93%E5%AD%98/</loc>
+    <loc>https://cezz.github.io/2020/08/16/django/%E5%9C%A8Django%E4%B8%AD%E4%BD%BF%E7%94%A8%E7%BC%93%E5%AD%98/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -263,7 +263,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/03/18/go/go%E5%AE%9E%E7%8E%B0%E5%A4%A7%E6%A0%B9%E5%A0%86%E3%80%81%E5%B0%8F%E6%A0%B9%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/</loc>
+    <loc>https://cezz.github.io/2022/03/18/go/go%E5%AE%9E%E7%8E%B0%E5%A4%A7%E6%A0%B9%E5%A0%86%E3%80%81%E5%B0%8F%E6%A0%B9%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -272,7 +272,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/02/12/go/go%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90/</loc>
+    <loc>https://cezz.github.io/2022/02/12/go/go%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -281,7 +281,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/08/29/go/go%E8%AF%AD%E8%A8%80%E4%B8%ADstring%E5%92%8C[]byte%E4%B9%8B%E9%97%B4%E7%9A%84%E8%BD%AC%E6%8D%A2/</loc>
+    <loc>https://cezz.github.io/2021/08/29/go/go%E8%AF%AD%E8%A8%80%E4%B8%ADstring%E5%92%8C[]byte%E4%B9%8B%E9%97%B4%E7%9A%84%E8%BD%AC%E6%8D%A2/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -290,7 +290,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/08/21/go/go%E8%AF%AD%E8%A8%80%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
+    <loc>https://cezz.github.io/2021/08/21/go/go%E8%AF%AD%E8%A8%80%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -299,7 +299,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/09/13/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%BA%8C)/</loc>
+    <loc>https://cezz.github.io/2021/09/13/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%BA%8C)/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -308,7 +308,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/09/16/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%B8%89)/</loc>
+    <loc>https://cezz.github.io/2021/09/16/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%B8%89)/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -317,7 +317,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/09/06/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%B8%80)/</loc>
+    <loc>https://cezz.github.io/2021/09/06/go/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB(%E4%B8%80)/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -326,7 +326,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/11/03/go/%E5%85%B3%E4%BA%8Echannel%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E6%80%BB%E7%BB%93/</loc>
+    <loc>https://cezz.github.io/2021/11/03/go/%E5%85%B3%E4%BA%8Echannel%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E6%80%BB%E7%BB%93/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -335,7 +335,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/11/19/go/%E5%85%B3%E4%BA%8Echannel%E5%92%8Cgoroutine%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E9%97%AE%E9%A2%98/</loc>
+    <loc>https://cezz.github.io/2021/11/19/go/%E5%85%B3%E4%BA%8Echannel%E5%92%8Cgoroutine%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E9%97%AE%E9%A2%98/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -344,7 +344,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/10/11/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%87%EF%BC%9F/</loc>
+    <loc>https://cezz.github.io/2021/10/11/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%87%EF%BC%9F/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -353,7 +353,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/10/22/go/%E5%A6%82%E4%BD%95%E4%B8%BB%E5%8A%A8%E5%85%B3%E9%97%ADgoroutine%EF%BC%9F/</loc>
+    <loc>https://cezz.github.io/2021/10/22/go/%E5%A6%82%E4%BD%95%E4%B8%BB%E5%8A%A8%E5%85%B3%E9%97%ADgoroutine%EF%BC%9F/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -362,7 +362,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/</loc>
+    <loc>https://cezz.github.io/2022/05/08/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%80)/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -371,7 +371,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/</loc>
+    <loc>https://cezz.github.io/2022/05/12/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%BA%8C)/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -380,7 +380,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/</loc>
+    <loc>https://cezz.github.io/2022/05/21/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E4%B8%89)/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -389,7 +389,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/</loc>
+    <loc>https://cezz.github.io/2022/05/27/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98%EF%BC%9Ago%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0redis(%E5%9B%9B)/</loc>
     
     <lastmod>2022-06-28</lastmod>
     
@@ -398,7 +398,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2022/03/05/go/channel%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/</loc>
+    <loc>https://cezz.github.io/2022/03/05/go/channel%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/</loc>
     
     <lastmod>2022-05-23</lastmod>
     
@@ -407,7 +407,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2020/07/29/python/pyenv%E7%9A%84%E4%BD%BF%E7%94%A8/</loc>
+    <loc>https://cezz.github.io/2020/07/29/python/pyenv%E7%9A%84%E4%BD%BF%E7%94%A8/</loc>
     
     <lastmod>2022-05-23</lastmod>
     
@@ -416,7 +416,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/links/index.html</loc>
+    <loc>https://cezz.github.io/links/index.html</loc>
     
     <lastmod>2022-05-23</lastmod>
     
@@ -425,7 +425,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/books/index.html</loc>
+    <loc>https://cezz.github.io/books/index.html</loc>
     
     <lastmod>2022-05-23</lastmod>
     
@@ -434,7 +434,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/repository/index.html</loc>
+    <loc>https://cezz.github.io/repository/index.html</loc>
     
     <lastmod>2022-05-23</lastmod>
     
@@ -443,7 +443,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/tags/index.html</loc>
+    <loc>https://cezz.github.io/tags/index.html</loc>
     
     <lastmod>2022-05-23</lastmod>
     
@@ -452,7 +452,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/2021/08/03/go/go%E8%AF%AD%E8%A8%80%E4%B8%ADmake%E5%92%8Cnew%E7%9A%84%E5%8C%BA%E5%88%AB/</loc>
+    <loc>https://cezz.github.io/2021/08/03/go/go%E8%AF%AD%E8%A8%80%E4%B8%ADmake%E5%92%8Cnew%E7%9A%84%E5%8C%BA%E5%88%AB/</loc>
     
     <lastmod>2022-05-23</lastmod>
     
@@ -461,7 +461,7 @@
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/index.html</loc>
+    <loc>https://cezz.github.io/categories/index.html</loc>
     
     <lastmod>2022-04-10</lastmod>
     
@@ -471,8 +471,8 @@
   
 
   <url>
-    <loc>https://zcej.github.io/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -481,64 +481,64 @@
 
   
   <url>
-    <loc>https://zcej.github.io/categories/django/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/django/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/docker/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/docker/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/go/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/go/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/grpc/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/go/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/python/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/%E5%85%B6%E4%BB%96/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/grpc/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/python/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/%E5%85%B6%E4%BB%96/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://zcej.github.io/categories/python/%E7%88%AC%E8%99%AB/</loc>
-    <lastmod>2023-05-04</lastmod>
+    <loc>https://cezz.github.io/categories/python/%E7%88%AC%E8%99%AB/</loc>
+    <lastmod>2025-05-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

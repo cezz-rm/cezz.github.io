@@ -21,7 +21,7 @@
   <meta name="description" content="背景最近研究filebeat的时候，发现每次修改文件后输出的是文件的全量内容，与自己期望的不太一样，然后又翻看了相关的文章，快速过了下官方文档。得出一个结论，filebeat默认应该是输出的文件增量内容才对，经群里小伙伴的提示才反应过来，问题是不是出在修改文件的方式？果不其然，我个人调试的时候使用的是vim修改文件新增内容的，换成echo的方式后，达到了期望的结果。那么为什么vim不行呢？ 什么">
 <meta property="og:type" content="article">
 <meta property="og:title" content="vim和echo修改文件的区别">
-<meta property="og:url" content="https://zcej.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
+<meta property="og:url" content="https://cezz.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="背景最近研究filebeat的时候，发现每次修改文件后输出的是文件的全量内容，与自己期望的不太一样，然后又翻看了相关的文章，快速过了下官方文档。得出一个结论，filebeat默认应该是输出的文件增量内容才对，经群里小伙伴的提示才反应过来，问题是不是出在修改文件的方式？果不其然，我个人调试的时候使用的是vim修改文件新增内容的，换成echo的方式后，达到了期望的结果。那么为什么vim不行呢？ 什么">
 <meta property="og:locale" content="zh_CN">
@@ -30,7 +30,7 @@
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://zcej.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
+  <link rel="canonical" href="https://cezz.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -54,12 +54,12 @@
       
       
       <div class="profile-block text-center">
-        <a id="avatar" href="https://github.com/zcej" target="_blank">
+        <a id="avatar" href="https://github.com/cezz-rm" target="_blank">
           <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
         </a>
         <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
         <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
-        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ChengDu, China</small>
       </div>
       
       <div class="search" id="search-form-wrap">
@@ -182,7 +182,7 @@
 	
     <ul class="social-links">
     	
-        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        <li><a href="https://github.com/cezz-rm" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
@@ -420,7 +420,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://zcej.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/" title="vim和echo修改文件的区别" target="_blank" rel="external">https://zcej.github.io/2023/01/08/其他/vim和echo修改文件的区别/</a>
+      <a href="https://cezz.github.io/2023/01/08/%E5%85%B6%E4%BB%96/vim%E5%92%8Cecho%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/" title="vim和echo修改文件的区别" target="_blank" rel="external">https://cezz.github.io/2023/01/08/其他/vim和echo修改文件的区别/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -434,12 +434,12 @@
   <div class="panel-body">
     <figure class="media">
       <div class="media-left">
-        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+        <a href="https://github.com/cezz-rm" target="_blank" class="img-burn thumb-sm visible-lg">
           <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
         </a>
       </div>
       <div class="media-body">
-        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <h3 class="media-heading"><a href="https://github.com/cezz-rm" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
         <div>个人简介</div>
       </div>
     </figure>
@@ -545,7 +545,7 @@
 	
     <ul class="social-links">
     	
-        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        <li><a href="https://github.com/cezz-rm" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         

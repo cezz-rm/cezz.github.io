@@ -21,7 +21,7 @@
   <meta name="description" content="先简单对三大日志进行总结：  mysql innodb引擎使用redo log(重做日志)保证事务的持久性，使用undo log(回滚日志)保证事务的原子性 mysql的数据备份，主备，主主，主从都离不开binlog，需要依靠binlog来同步数据，保证数据的一致性  除三大日志外，还有relay log(中继日志)，slow query log(慢查询日志)，error log(错误日志等) r">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL中的几类日志">
-<meta property="og:url" content="https://zcej.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/index.html">
+<meta property="og:url" content="https://cezz.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="先简单对三大日志进行总结：  mysql innodb引擎使用redo log(重做日志)保证事务的持久性，使用undo log(回滚日志)保证事务的原子性 mysql的数据备份，主备，主主，主从都离不开binlog，需要依靠binlog来同步数据，保证数据的一致性  除三大日志外，还有relay log(中继日志)，slow query log(慢查询日志)，error log(错误日志等) r">
 <meta property="og:locale" content="zh_CN">
@@ -30,7 +30,7 @@
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://zcej.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/index.html">
+  <link rel="canonical" href="https://cezz.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/index.html">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -54,12 +54,12 @@
       
       
       <div class="profile-block text-center">
-        <a id="avatar" href="https://github.com/zcej" target="_blank">
+        <a id="avatar" href="https://github.com/cezz-rm" target="_blank">
           <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
         </a>
         <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
         <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
-        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ChengDu, China</small>
       </div>
       
       <div class="search" id="search-form-wrap">
@@ -182,7 +182,7 @@
 	
     <ul class="social-links">
     	
-        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        <li><a href="https://github.com/cezz-rm" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
@@ -400,7 +400,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://zcej.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" title="MySQL中的几类日志" target="_blank" rel="external">https://zcej.github.io/2023/02/05/数据库/MySQL中几类日志/</a>
+      <a href="https://cezz.github.io/2023/02/05/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL%E4%B8%AD%E5%87%A0%E7%B1%BB%E6%97%A5%E5%BF%97/" title="MySQL中的几类日志" target="_blank" rel="external">https://cezz.github.io/2023/02/05/数据库/MySQL中几类日志/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -414,12 +414,12 @@
   <div class="panel-body">
     <figure class="media">
       <div class="media-left">
-        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+        <a href="https://github.com/cezz-rm" target="_blank" class="img-burn thumb-sm visible-lg">
           <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
         </a>
       </div>
       <div class="media-body">
-        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <h3 class="media-heading"><a href="https://github.com/cezz-rm" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
         <div>个人简介</div>
       </div>
     </figure>
@@ -525,7 +525,7 @@
 	
     <ul class="social-links">
     	
-        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        <li><a href="https://github.com/cezz-rm" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         

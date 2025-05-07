@@ -21,7 +21,7 @@
   <meta name="description" content="时刻提醒自己必须深入理解channel的特性，有自己的思考，而不是死记硬背。之后可以阅读熟悉下channel的底层实现原理。 向无缓冲的channel发送&#x2F;接收数据无缓冲的channel必须有接收才能发送，下述代码在执行的时候会引发deadlock错误 12345func main() &amp;#123;    ch :&#x3D; make(chan int)    ch &lt;- 1  &#x2F;&#x2F; 这一">
 <meta property="og:type" content="article">
 <meta property="og:title" content="关于channel发生死锁的情况总结">
-<meta property="og:url" content="https://zcej.github.io/2021/11/03/go/%E5%85%B3%E4%BA%8Echannel%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:url" content="https://cezz.github.io/2021/11/03/go/%E5%85%B3%E4%BA%8Echannel%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="时刻提醒自己必须深入理解channel的特性，有自己的思考，而不是死记硬背。之后可以阅读熟悉下channel的底层实现原理。 向无缓冲的channel发送&#x2F;接收数据无缓冲的channel必须有接收才能发送，下述代码在执行的时候会引发deadlock错误 12345func main() &amp;#123;    ch :&#x3D; make(chan int)    ch &lt;- 1  &#x2F;&#x2F; 这一">
 <meta property="og:locale" content="zh_CN">
@@ -30,7 +30,7 @@
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://zcej.github.io/2021/11/03/go/%E5%85%B3%E4%BA%8Echannel%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E6%80%BB%E7%BB%93/index.html">
+  <link rel="canonical" href="https://cezz.github.io/2021/11/03/go/%E5%85%B3%E4%BA%8Echannel%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E6%80%BB%E7%BB%93/index.html">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -54,12 +54,12 @@
       
       
       <div class="profile-block text-center">
-        <a id="avatar" href="https://github.com/zcej" target="_blank">
+        <a id="avatar" href="https://github.com/cezz-rm" target="_blank">
           <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
         </a>
         <h2 id="name" class="hidden-xs hidden-sm">HAHA</h2>
         <h3 id="title" class="hidden-xs hidden-sm hidden-md">Developer &amp; Designer</h3>
-        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ChengDu, China</small>
       </div>
       
       <div class="search" id="search-form-wrap">
@@ -182,7 +182,7 @@
 	
     <ul class="social-links">
     	
-        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        <li><a href="https://github.com/cezz-rm" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
@@ -389,7 +389,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://zcej.github.io/2021/11/03/go/%E5%85%B3%E4%BA%8Echannel%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E6%80%BB%E7%BB%93/" title="关于channel发生死锁的情况总结" target="_blank" rel="external">https://zcej.github.io/2021/11/03/go/关于channel发生死锁的情况总结/</a>
+      <a href="https://cezz.github.io/2021/11/03/go/%E5%85%B3%E4%BA%8Echannel%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E6%80%BB%E7%BB%93/" title="关于channel发生死锁的情况总结" target="_blank" rel="external">https://cezz.github.io/2021/11/03/go/关于channel发生死锁的情况总结/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -403,12 +403,12 @@
   <div class="panel-body">
     <figure class="media">
       <div class="media-left">
-        <a href="https://github.com/zcej" target="_blank" class="img-burn thumb-sm visible-lg">
+        <a href="https://github.com/cezz-rm" target="_blank" class="img-burn thumb-sm visible-lg">
           <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
         </a>
       </div>
       <div class="media-body">
-        <h3 class="media-heading"><a href="https://github.com/zcej" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
+        <h3 class="media-heading"><a href="https://github.com/cezz-rm" target="_blank"><span class="text-dark">HAHA</span><small class="ml-1x">Developer &amp; Designer</small></a></h3>
         <div>个人简介</div>
       </div>
     </figure>
@@ -514,7 +514,7 @@
 	
     <ul class="social-links">
     	
-        <li><a href="https://github.com/zcej" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        <li><a href="https://github.com/cezz-rm" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
