@@ -21,18 +21,18 @@
   <meta name="description" content="当上线gRPC服务到生产环境的时候，首先需要考虑的就是数据的安全，那么如何保证呢，下面以python为例，进行简单介绍。 RPC的认证方式RPC服务一般在服务内网使用，不过也有存在于外网的情况，不论是哪种RPC服务，走http2.0或是其他基于TCP实现socket的协议，在部署到生产环境的时候还是需要考虑身份认证加密的，以此来保证数据的安全。 基于SSL&#x2F;TLS的通道加密通常身份认证机">
 <meta property="og:type" content="article">
 <meta property="og:title" content="gRPC如何做身份认证？">
-<meta property="og:url" content="https://cezz.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/index.html">
+<meta property="og:url" content="https://cezz-rm.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="当上线gRPC服务到生产环境的时候，首先需要考虑的就是数据的安全，那么如何保证呢，下面以python为例，进行简单介绍。 RPC的认证方式RPC服务一般在服务内网使用，不过也有存在于外网的情况，不论是哪种RPC服务，走http2.0或是其他基于TCP实现socket的协议，在部署到生产环境的时候还是需要考虑身份认证加密的，以此来保证数据的安全。 基于SSL&#x2F;TLS的通道加密通常身份认证机">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://cezz.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/grpc-ssl.png">
+<meta property="og:image" content="https://cezz-rm.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/grpc-ssl.png">
 <meta property="article:published_time" content="2022-08-10T14:05:51.000Z">
 <meta property="article:modified_time" content="2022-10-10T14:07:46.851Z">
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://cezz.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/grpc-ssl.png">
+<meta name="twitter:image" content="https://cezz-rm.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/grpc-ssl.png">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://cezz.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/index.html">
+  <link rel="canonical" href="https://cezz-rm.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/index.html">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -422,7 +422,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://cezz.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/" title="gRPC如何做身份认证？" target="_blank" rel="external">https://cezz.github.io/2022/08/10/grpc/gRPC如何做身份认证？/</a>
+      <a href="https://cezz-rm.github.io/2022/08/10/grpc/gRPC%E5%A6%82%E4%BD%95%E5%81%9A%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%EF%BC%9F/" title="gRPC如何做身份认证？" target="_blank" rel="external">https://cezz-rm.github.io/2022/08/10/grpc/gRPC如何做身份认证？/</a>
     </li>
     
     <li class="post-copyright-license">

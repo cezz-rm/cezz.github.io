@@ -21,20 +21,20 @@
   <meta name="description" content="本文基于已经创建了hexo的基础，向github action自动化部署迈进。出于长远考虑，还是应当将blog结合CI进行完善。避免存放hexo源码的电脑重装或者更换带来的不变。下面将记录自己的部署过程。 准备工作 创建Token  为了确保由github action持续部署时，其拥有足够的权限进行hexo deploy的相关操作，需提前创建好token。登录并访问Github-&gt;头像(右">
 <meta property="og:type" content="article">
 <meta property="og:title" content="使用Github Action自动化部署Hexo">
-<meta property="og:url" content="https://cezz.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/index.html">
+<meta property="og:url" content="https://cezz-rm.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="本文基于已经创建了hexo的基础，向github action自动化部署迈进。出于长远考虑，还是应当将blog结合CI进行完善。避免存放hexo源码的电脑重装或者更换带来的不变。下面将记录自己的部署过程。 准备工作 创建Token  为了确保由github action持续部署时，其拥有足够的权限进行hexo deploy的相关操作，需提前创建好token。登录并访问Github-&gt;头像(右">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://cezz.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-1.png">
-<meta property="og:image" content="https://cezz.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-2.png">
-<meta property="og:image" content="https://cezz.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-3.png">
+<meta property="og:image" content="https://cezz-rm.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-1.png">
+<meta property="og:image" content="https://cezz-rm.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-2.png">
+<meta property="og:image" content="https://cezz-rm.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-3.png">
 <meta property="article:published_time" content="2023-01-15T06:22:02.000Z">
 <meta property="article:modified_time" content="2023-05-04T10:29:11.854Z">
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://cezz.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-1.png">
+<meta name="twitter:image" content="https://cezz-rm.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/1-1.png">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://cezz.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/index.html">
+  <link rel="canonical" href="https://cezz-rm.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/index.html">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -409,7 +409,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://cezz.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" title="使用Github Action自动化部署Hexo" target="_blank" rel="external">https://cezz.github.io/2023/01/15/其他/使用Github Action自动化部署Hexo/</a>
+      <a href="https://cezz-rm.github.io/2023/01/15/%E5%85%B6%E4%BB%96/%E4%BD%BF%E7%94%A8Github%20Action%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2Hexo/" title="使用Github Action自动化部署Hexo" target="_blank" rel="external">https://cezz-rm.github.io/2023/01/15/其他/使用Github Action自动化部署Hexo/</a>
     </li>
     
     <li class="post-copyright-license">

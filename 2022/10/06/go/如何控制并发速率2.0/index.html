@@ -21,7 +21,7 @@
   <meta name="description" content="之前有记录过在go中如何控制并发速率，要么就是通过带缓冲的channel，要么就是通过协程池。不论是通过什么方式，选择最适合在当前场景使用的即可，下面记录下学习过程中发现的开源项目中不同的实现方式。 ratelimit 来自projectdiscovery&#x2F;ratelimit  个人理解该项目的特点是能控制的是每隔一段时间(自己定义)，起多少个并发，之前起的goroutine还在执行的话也没有影响">
 <meta property="og:type" content="article">
 <meta property="og:title" content="如何控制并发速率2.0">
-<meta property="og:url" content="https://cezz.github.io/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/index.html">
+<meta property="og:url" content="https://cezz-rm.github.io/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="之前有记录过在go中如何控制并发速率，要么就是通过带缓冲的channel，要么就是通过协程池。不论是通过什么方式，选择最适合在当前场景使用的即可，下面记录下学习过程中发现的开源项目中不同的实现方式。 ratelimit 来自projectdiscovery&#x2F;ratelimit  个人理解该项目的特点是能控制的是每隔一段时间(自己定义)，起多少个并发，之前起的goroutine还在执行的话也没有影响">
 <meta property="og:locale" content="zh_CN">
@@ -30,7 +30,7 @@
 <meta property="article:author" content="CeJ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://cezz.github.io/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/index.html">
+  <link rel="canonical" href="https://cezz-rm.github.io/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/index.html">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -394,7 +394,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://cezz.github.io/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/" title="如何控制并发速率2.0" target="_blank" rel="external">https://cezz.github.io/2022/10/06/go/如何控制并发速率2.0/</a>
+      <a href="https://cezz-rm.github.io/2022/10/06/go/%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E9%80%9F%E7%8E%872.0/" title="如何控制并发速率2.0" target="_blank" rel="external">https://cezz-rm.github.io/2022/10/06/go/如何控制并发速率2.0/</a>
     </li>
     
     <li class="post-copyright-license">
